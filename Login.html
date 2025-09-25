@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Borrador Login Tailwind</title>
   <!-- Tailwind link -->
   <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="bg-gray-50">
   <!-- Navbar -->
-   <header>
-  <nav class="bg-white shadow-md">
-    <nav class="bg-gray-100 px-6 py-3 flex items-center justify-between">
-    <nav class="bg-gray-100 px-4 py-2 flex items-center">
-        <!-- Imagen redonda -->
-        <img src="img/LOGO_CS.jpg" alt="Logo" 
-             class="w-12 h-12 rounded-full mr-3">
-      
-        <!-- Título -->
-        <h1 class="text-xl font-bold text-gray-800">Circulo Seguro</h1>
+  <header>
+    <nav class="bg-white shadow-md">
+      <nav class="bg-gray-100 px-6 py-3 flex items-center justify-between">
+        <nav class="bg-gray-100 px-4 py-2 flex items-center">
+          <!-- Imagen redonda -->
+          <img src="img/LOGO_CS.jpg" alt="Logo" class="w-12 h-12 rounded-full mr-3">
+
+          <!-- Título -->
+          <h1 class="text-xl font-bold text-gray-800">Circulo Seguro</h1>
+        </nav>
+        <button class="md:hidden text-gray-700 focus:outline-none">
+          <!-- Icono -->
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <ul class="hidden md:flex space-x-6">
+          <li><a href="./Login.html" class="text-gray-700 hover:text-indigo-600">Iniciar sesión</a></li>
+          <li><a href="./Contacto.html" class="text-gray-700 hover:text-indigo-600">Contacto</a></li>
+        </ul>
+        </div>
       </nav>
-    <button class="md:hidden text-gray-700 focus:outline-none">
-      <!-- Icono -->
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
-    <ul class="hidden md:flex space-x-6">
-      <li><a href="./Login.html" class="text-gray-700 hover:text-indigo-600">Iniciar sesión</a></li>
-      <li><a href="./Contacto.html" class="text-gray-700 hover:text-indigo-600">Contacto</a></li>
-    </ul>
-  </div>
-</nav>
-</header>
+  </header>
   <!-- Contenido principal: Login -->
   <div class="flex justify-center items-center min-h-screen px-4">
     <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
@@ -51,14 +52,15 @@
             class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600"
             required>
         </div>
-        <button type="submit"
+        <button onclick="window.location.href='./VerificacionBio.html'"type="submit"
           class="w-full bg-indigo-600 text-white font-semibold py-2 rounded hover:bg-indigo-700 transition-colors">Iniciar
           Sesión</button>
       </form>
       <div class="text-center mt-4">
-        <button type="button" class="text-indigo-600 hover:underline" href="./CrearCuenta.html">Crea tu cuenta</button> 
+        <button onclick="window.location.href='./CrearCuenta.html'" type="button" class="text-indigo-600 hover:underline" >Crea tu cuenta</button>
       </div>
     </div>
   </div>
 </body>
-</html>
+
+</html>  

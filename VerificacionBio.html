@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación Biométrica</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <!-- Configuración personalizada de Tailwind para colores y temas -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-primary-50 to-blue-50 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 fade-in">
+        <!-- Título principal -->
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-8">Verificación de Identidad</h1>
+        
+        <!-- Sección para subir foto del documento -->
+        <div class="mb-6">
+            <label for="docInput" class="block text-sm font-medium text-gray-700 mb-2">
+                Foto del documento (DUI o Pasaporte)
+            </label>
+            <input 
+                type="file" 
+                id="docInput" 
+                accept="image/*" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600"
+            >
+            <p class="mt-1 text-xs text-gray-500">Selecciona una imagen clara y legible de tu documento.</p>
+        </div>
+        
+        <!-- Sección para selfie con cámara -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                📸 Captura tu selfie
+            </label>
+            <div class="relative">
+                <video 
+                    id="video" 
+                    width="100%" 
+                    height="240" 
+                    autoplay 
+                    class="w-full rounded-lg border-2 border-gray-200 shadow-md bg-black"
+                    muted
+                ></video>
+                <div id="cameraOverlay" class="absolute inset-0 rounded-lg bg-black bg-opacity-20 hidden pointer-events-none">
+                    <!-- Overlay opcional para guiar al usuario -->
+                    <div class="flex items-center justify-center h-full text-white text-sm">
+                        Posiciona tu rostro en el centro
+                    </div>
+                </div>
+            </div>
+            <button 
+                id="captureBtn" 
+                class="mt-4 w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center"
+            >
+                📷 Tomar Selfie
+            </button>
+            <canvas id="canvas" width="320" height="240" class="w-full rounded-lg border-2 border-primary-500 shadow-md mt-2 hidden"></canvas>
+            <p id="selfieStatus" class="mt-2 text-xs text-gray-500 hidden">Selfie capturada exitosamente. ¡Revisa la imagen!</p>
+        </div>
+        
+        <!-- Botón para enviar al servidor -->
+        <button 
+            id="submitBtn" 
+            class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center relative"
+            disabled
+        >
+            🚀 Enviar al Servidor
+        </button>
+        
+        <!-- Mensaje de estado global -->
+        <div id="statusMsg" class="mt-4 text-center text-sm hidden"></div>
+    </div>
+
+    <!-- JavaScript para dinamismo (vanilla JS) -->
+    <script>
+        // Elementos DOM
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const docInput = document.getElementById('docInput');
+        const statusMsg = document.getElementById('statusMsg');
+        const selfieStatus = document.getElementById('selfieStatus');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+
+        let mediaStream = null;
+        let selfieCap= false;
+        let documentUploaded = false;
+
+        // Función para mostrar mensajes de estado
+        function showStatus(message, isError = false) {
+            statusMsg.textContent = message;
+            statusMsg.className = `mt-4 text-center text-sm ${isError ? 'text-red-500' : 'text-green-500'}`;
+            statusMsg.classList.remove('hidden');
+            setTimeout(() => statusMsg.classList.add('hidden'), 5000);
+        }
+
+        // Iniciar cámara
+        async function initCamera() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUser.Media({ video: { width: 320, height: 240 } });
+                video.srcObject = mediaStream;
+                cameraOverlay.classList.remove('hidden'); // Mostrar overlay guía
+                showStatus('Cámara activada. Posiciona tu rostro.', false);
+            } catch (err) {
+                showStatus('Error al acceder a la cámara: ' + err.message, true);
+                captureBtn.disabled = true;
+            }
+        }
+
+        // Tomar selfie
+        captureBtn.addEventListener('click', () => {
+            if (video.srcObject) {
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.classList.add('show'); // Mostrar canvas
+                selfieStatus.classList.remove('hidden');
+                selfieCaptured = true;
+                captureBtn.textContent = '🔄 Selfie Tomada';
+                captureBtn.disabled = true;
+                
+                // Habilitar botón de envío si también hay documento
+                checkReadyToSubmit();
+                
+                // Opcional: Detener video después de capturar
+                // mediaStream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        // Verificar si está listo para enviar
+        function checkReadyToSubmit() {
+            if (selfieCapt && documentUploaded) {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Subir documento
+        docInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                documentUploaded = true;
+                showStatus('Documento subido correctamente.', false);
+                checkReadyToSubmit();
+            }
+        });
+
+        // Enviar al servidor (simulación)
+        submitBtn.addEventListener('click', async () => {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('btn-loading');
+            submitBtn.innerHTML = 'Enviando...';
+
+            // Simular envío (en un app real, usa FormData con fetch)
+            try {
+                // Ejemplo: Crear FormData
+                const formData = new FormData();
+                if (docInput.files[0]) formData.append('document', docInput.files[0]);
+                const selfieData = canvas.toDataURL('image/png');
+                formData.append('selfie', selfieData);
+
+                // Simular API call
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Delay simulado
+                showStatus('Verificación enviada exitosamente. Procesando...', false);
+                
+                // Reset form (opcional)
+                // location.reload();
+            } catch (err) {
+                showStatus('Error al enviar: ' + err.message, true);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-loading');
+                submitBtn.innerHTML = '🚀 Enviar al Servidor';
+            }
+        });
+
+        // Inicializar al cargar la página
+        window.addEventListener('load', initCamera);
+
+        // Limpiar stream al cerrar página
+        window.addEventListener('beforeunload', () => {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>

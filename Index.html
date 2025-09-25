@@ -1,40 +1,46 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Borrador con Tailwind</title>
-  <!-- Tailwind script -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Metadatos básicos -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Borrador con Tailwind - Círculo Seguro</title>
+  
+  <!-- Estilos y scripts externos -->
   <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.tailwindcss.com"></script> <!-- Tailwind CDN para estilos responsivos -->
+  <script src="https://unpkg.com/feather-icons"></script> <!-- Íconos Feather (si los usas) -->
 </head>
 <body class="bg-gray-50 text-gray-800">
-  <!-- Navbar -->
+  <!-- Header con navegación principal -->
   <header>
     <nav class="bg-white shadow-md">
+      <!-- Barra superior con logo y menú (responsiva) -->
       <div class="bg-gray-100 px-6 py-3 flex items-center justify-between">
-        <!-- Logo y título -->
+        <!-- Sección izquierda: Logo y título -->
         <div class="flex items-center">
-          <img src="img/LOGO_CS.jpg" alt="Logo" class="w-12 h-12 rounded-full mr-3">
+          <img src="img/LOGO_CS.jpg" alt="Logo de Círculo Seguro" class="w-12 h-12 rounded-full mr-3">
           <h1 class="text-xl font-bold text-gray-800">Círculo Seguro</h1>
         </div>
         
-        <!-- Botón hambuger para móvil -->
-        <button class="md:hidden text-gray-700 focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+        <!-- Botón hamburger para dispositivos móviles (md:hidden oculta en desktop) -->
+        <button class="md:hidden text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
+          <!-- Ícono de menú (puedes reemplazar con Feather si lo usas) -->
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
         </button>
         
-        <!-- Enlaces de navegación (ocultos en móvil) -->
-        <ul class="hidden md:flex space-x-6">
-          <li><a href="./Login.html" class="text-gray-700 hover:text-indigo-600">Iniciar sesión</a></li>
-          <li><a href="./Contacto.html" class="text-gray-700 hover:text-indigo-600">Contacto</a></li>
+        <!-- Menú de navegación desktop (oculto en móvil con hidden md:flex) -->
+        <ul class="hidden md:flex items-center space-x-6">
+          <li><a href="Login.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Iniciar sesión</a></li>
+          <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
+          <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
+                    <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
         </ul>
       </div>
     </nav>
-  </header> 
+  </header>
 
   <!-- Contenido principal -->
   <main class="container mx-auto px-6 my-10">
@@ -115,7 +121,7 @@
             <li>✅ Asistencia en orientación nutricional</li>
             <li>✅ Asistencia en orientación psicológica</li>
           </ul>
-          <button class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">CONTRATA</button>
+          <button onclick="" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">CONTRATA</button>
         </div>
       </div>
     </section>
