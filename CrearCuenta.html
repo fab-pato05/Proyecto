@@ -28,6 +28,8 @@
           </svg>
         </button>
         <ul class="hidden md:flex space-x-6">
+          <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
+                    <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
           <li><a href="./Contacto.html" class="text-gray-700 hover:text-indigo-600">Contacto</a></li>
         </ul>
         </div>
@@ -38,7 +40,7 @@
     <div class="bg-white shadow-lg rounded-2xl p-10 w-full max-w-xl">
       <h3 class="text-3xl font-bold text-center mb-6">Crea tu cuenta</h3>
 
-      <form>
+      <form id="miFormulario" action="VerificacionBio.html">
         <!-- Nombre -->
         <div class="mb-4">
           <label for="nombre" class="block text-gray-700 mb-2">Nombre</label>
@@ -66,7 +68,11 @@
           </select>
 
           <label for="numero" class="block text-gray-700 font-medium mb-2">Número de documento</label>
-          <input type="text" id="numero" placeholder="Escribe el número aquí"
+          <input type="text" id="dui" name="dui" 
+          pattern="\d{8}-\d"
+          maxlength="10"
+          requerid
+          title="Formato requerido: 8 digitos, guion, 1 digito."
             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600">
         </div>
 
@@ -80,10 +86,10 @@
 
         <!-- Fecha nacimiento -->
         <div class="mb-4">
-          <label for="fecha" class="block text-gray-700 mb-2">Fecha de nacimiento</label>
-          <input type="date" id="fecha" class="w-full px-4 py-2 border rounded-lg shadow-sm 
+          <label for="fechaNac" class="block text-gray-700 mb-2">Fecha de nacimiento</label>
+          <input type="date" id="fechaNac" name="fechaNac" class="w-full px-4 py-2 border rounded-lg shadow-sm 
                     focus:outline-none focus:ring-2 focus:ring-blue-500 
-                    focus:border-blue-500 cursor-pointer">
+                    focus:border-blue-500 cursor-pointer" max="2007-09-29" requerid>
         </div>
 
         <!-- Contraseña -->
@@ -102,7 +108,8 @@
       </form>
     </div>
   </div>
+  <script src="Script.js"></script>
+  </body>
 
-</body>
 
 </html>

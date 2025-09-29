@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contratar Póliza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<!-- Panel Principal-->
+<div id="panel" class="hidden">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->s
+        <aside class="bg-sky-700 text-white w-64 p-6 space-y-6">
+            <h2 class="text-2xl font-bold">MiSeguro</h2>
+            <nav class="space-y-4">
+                <a href="#" class="block hover:bg-indigo-500 p-2 rounded">🏠 Inicio</a>
+                <a href="#" class="block hover:bg-indigo-500 p-2 rounded">📄 Mi Póliza</a>
+                <a href="#" class="block hover:bg-indigo-500 p-2 rounded">💳 Pagos</a>
+                <a href="#" class="block hover:bg-indigo-500 p-2 rounded">👨‍👩‍👧 Beneficiarios</a>
+                <a href="#" class="block hover:bg-indigo-500 p-2 rounded">📥 Documentos</a>
+                <a href="#" class="block hover:bg-indigo-500 p-2 rounded">❓ Soporte</a>
+            </nav>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="flex-1 p-8 space-y-8">
+            <div class="bg-white shadow-lg rounded-2xl p-6 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">Hola, Usuario 👋</h1>
+                    <p class="text-gray-600">
+                        Gracias por confiar en nosotros. Tu póliza está
+                        <span class="text-green-600 font-semibold">ACTIVA</span>.
+                    </p>
+                </div>
+                <img src="https://cdn-icons-png.flaticon.com/512/2922/2922510.png" alt="avatar"
+                    class="w-16 h-16 rounded-full">
+            </div>
+
+            <!-- Aquí podrías mostrar el tipo de póliza seleccionada -->
+            <div class="bg-white p-6 rounded-2xl shadow">
+                <h2 class="text-xl font-bold mb-2">📄 Tipo de Póliza Contratada</h2>
+                <p id="polizaSeleccionada" class="text-gray-700">[Aún no seleccionada]</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow">
+                    <h3 class="font-bold text-lg mb-2">Número de Póliza</h3>
+                    <p class="text-gray-700">SV-2039482</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow">
+                    <h3 class="font-bold text-lg mb-2">Monto Asegurado</h3>
+                    <p class="text-gray-700">$50,000</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow">
+                    <h3 class="font-bold text-lg mb-2">Vigencia</h3>
+                    <p class="text-gray-700">10/02/2024 - 10/02/2044</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
