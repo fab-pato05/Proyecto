@@ -11,7 +11,7 @@
   <script src="https://cdn.tailwindcss.com"></script> <!-- Tailwind CDN para estilos responsivos -->
   <script src="https://unpkg.com/feather-icons"></script> <!-- Íconos Feather (si los usas) -->
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-100 text-gray-800">
   <!-- Header con navegación principal -->
   <header>
     <nav class="bg-white shadow-md">
@@ -33,10 +33,10 @@
         
         <!-- Menú de navegación desktop (oculto en móvil con hidden md:flex) -->
         <ul class="hidden md:flex items-center space-x-6">
-          <li><a href="../Views/Login.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Iniciar sesión</a></li>
-          <li><a href="../Views/Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
-          <li><a href="../Views/Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
-                    <li><a href="../Views/Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+          <li><a href="Login.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Iniciar sesión</a></li>
+          <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
+          <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
+                    <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
         </ul>
       </div>
     </nav>
@@ -80,7 +80,7 @@
             <li>❌ Asistencia en orientación nutricional</li>
             <li>❌ Asistencia en orientación psicológica</li>
           </ul>
-          <button onclick="window.location.href='./Views/Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">CONTRATA</button>
+          <button onclick="window.location.href='./Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">CONTRATA</button>
         </div>
 
         <!-- Tarjeta 2: PLAN VIDA PERSONAL (destacada) -->
@@ -101,7 +101,7 @@
             <li>✅ Asistencia en orientación nutricional</li>
             <li>✅ Asistencia en orientación psicológica</li>
           </ul>
-          <button onclick="window.location.href='./Views/Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">CONTRATA</button>
+          <button onclick="window.location.href='./Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">CONTRATA</button>
         </div>
 
         <!-- Tarjeta 3: VIDA MÚLTIPLE -->
@@ -217,5 +217,7 @@
     // Establecer año actual en el footer
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
+  <script src="Js/main.js"></script>
 </body>
+
 </html>

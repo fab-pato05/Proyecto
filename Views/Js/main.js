@@ -1,39 +1,51 @@
+const video = document.getElementById("camara");
+const canvas = document.getElementById("canvas");
+const captureBtn = document.getElementById("captureBtn");
+const submitBtn = document.getElementById("submitBtn");
+const statusMsg = document.getElementById("statusMsg");
+const ctx = canvas.getContext("2d");
 
-// Referencias a elementos
-const video = document.getElementById('video');
-const captureBtn = document.getElementById('captureBtn');
-const canvas = document.getElementById('canvas');
-const selfieStatus = document.getElementById('selfieStatus');
-const submitBtn = document.getElementById('submitBtn');
-const statusMsg = document.getElementById('statusMsg');
+let selfieBlob = null;
 
-// Solicitar acceso a la cámara y mostrar el video
-async function startCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+// Activar cámara
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
         video.srcObject = stream;
-        video.play();
-        statusMsg.classList.add('hidden');
-    } catch (err) {
-        statusMsg.textContent = 'No se pudo acceder a la cámara: ' + err.message;
-        statusMsg.classList.remove('hidden');
-    }
-}
+    })
+    .catch(err => {
+        console.error("Error al acceder a la cámara:", err);
+        alert("⚠️ No se pudo acceder a la cámara. Revisa permisos.");
+    });
 
-// Capturar la imagen del video y mostrarla en el canvas
-function captureSelfie() {
-    const context = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.classList.remove('hidden');
-    selfieStatus.classList.remove('hidden');
-    submitBtn.disabled = false; // Habilitar botón para enviar
-}
+// Capturar selfie
+captureBtn.addEventListener("click", () => {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+        selfieBlob = blob;
+        statusMsg.textContent = "✅ Selfie capturada";
+        submitBtn.disabled = false;
+        submitBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+        submitBtn.classList.add("bg-green-600", "hover:bg-green-700");
+    }, "image/png");
+});
 
-// Iniciar cámara al cargar la página
-window.addEventListener('load', startCamera);
+// Enviar selfie
+submitBtn.addEventListener("click", () => {
+    if (!selfieBlob) return alert("Primero toma tu selfie 📸");
 
-// Evento para capturar selfie al hacer click en el botón
-captureBtn.addEventListener('click', captureSelfie);
+    const formData = new FormData();
+    formData.append("selfie", selfieBlob, "selfie.png");
+
+    fetch("/upload", { method: "POST", body: formData })
+        .then(res => res.text())
+        .then(msg => {
+            statusMsg.textContent = msg;
+            statusMsg.classList.add("text-green-600");
+        })
+        .catch(err => {
+            console.error(err);
+            statusMsg.textContent = "❌ Error al subir la selfie";
+            statusMsg.classList.add("text-red-600");
+        });
+});
 
