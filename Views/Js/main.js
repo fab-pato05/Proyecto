@@ -15,10 +15,16 @@ const statusMsg = document.getElementById('statusMsg');
 const mensaje = document.getElementById('mensaje');
 
 let stream = null;
-let selfieBlob = null;
+let selfiesBlobs = [];  // Array para 3 selfies secuenciales
 let docFile = null;
+let currentStep = 0;  // Paso actual: 0=neutral, 1=izquierda, 2=derecha
+const steps = [
+    { msg: 'Paso 1: Mira directo a la cámara (neutral). Buena luz, sin gafas.', action: 'neutral' },
+    { msg: 'Paso 2: Mira a la izquierda y mantén 2s.', action: 'left' },
+    { msg: 'Paso 3: Mira a la derecha y mantén 2s.', action: 'right' }
+];
 
-// Función para inicializar cámara con mejor manejo de errores
+// Función para inicializar cámara
 async function initCamera() {
     try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -27,14 +33,13 @@ async function initCamera() {
         stream = mediaStream;
         video.srcObject = stream;
 
-        // Espera a que el video cargue y reproduzca
         video.onloadedmetadata = () => {
             video.play().catch(e => console.error('Error al reproducir video:', e));
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            statusMsg.textContent = '✅ Cámara activada en tiempo real. Posiciónate y captura.';
+            updateStep(0);  // Inicia en paso 1
+            statusMsg.textContent = '✅ Cámara activada. Sigue las instrucciones para verificación en vivo.';
             statusMsg.className = 'mt-4 text-sm text-center text-green-600 leading-relaxed';
-            mensaje.textContent = 'Mírate en la pantalla. Asegúrate de buena iluminación.';
         };
 
         video.onerror = () => {
@@ -61,24 +66,59 @@ async function initCamera() {
     }
 }
 
+// Actualiza mensaje y botón según paso
+function updateStep(step) {
+    currentStep = step;
+    if (step < steps.length) {
+        mensaje.textContent = steps[step].msg;
+        captureBtn.textContent = `📸 Capturar ${steps[step].action}`;
+        preview.classList.add('hidden');  // Oculta preview hasta final
+        selfiesBlobs[step] = null;  // Limpia blob anterior
+    } else {
+        // Todos pasos completos
+        mensaje.textContent = '¡Selfies capturadas! Ahora envía para IA.';
+        captureBtn.style.display = 'none';  // Oculta botón captura
+        preview.classList.remove('hidden');
+        showCompositePreview();  // Muestra preview combinado
+        checkReadyToSubmit();
+    }
+    statusMsg.textContent = `Paso ${step + 1} de ${steps.length}. Sigue las instrucciones para detectar movimiento real.`;
+    statusMsg.className = 'mt-4 text-sm text-center text-blue-600 leading-relaxed';
+}
+
+// Captura compuesta para preview (combina 3 selfies)
+function showCompositePreview() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = 300;
+    tempCanvas.height = 100;
+    const tempCtx = tempCanvas.getContext('2d');
+    selfiesBlobs.forEach((blob, i) => {
+        if (blob) {
+            const img = new Image();
+            img.onload = () => {
+                tempCtx.drawImage(img, i * 100, 0, 100, 100);
+                previewImg.src = tempCanvas.toDataURL();
+            };
+            img.src = URL.createObjectURL(blob);
+        }
+    });
+}
+
 // Inicializar cámara al cargar la página
 document.addEventListener('DOMContentLoaded', initCamera);
 
-// Manejo del input de documento (validación para imágenes y preview)
+// Manejo del input de documento (igual que antes)
 docInput.addEventListener('change', function (e) {
     docFile = e.target.files[0];
     if (docFile) {
-        // Validación extra: Confirma que es imagen
         if (!docFile.type.startsWith('image/')) {
             statusMsg.textContent = '❌ Error: Solo se permiten imágenes (JPG, PNG, etc.).';
             statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
-            docInput.value = '';  // Limpia el input
+            docInput.value = '';
             docFile = null;
-            docPreview.classList.add('hidden'); // Oculta preview
+            docPreview.classList.add('hidden');
             return;
         }
-
-        // Chequea tamaño (<5MB)
         if (docFile.size > 5 * 1024 * 1024) {
             statusMsg.textContent = '❌ Error: Imagen demasiado grande (máx 5MB).';
             statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
@@ -87,15 +127,11 @@ docInput.addEventListener('change', function (e) {
             docPreview.classList.add('hidden');
             return;
         }
-
-        // Muestra preview del documento
         docPreviewImg.src = URL.createObjectURL(docFile);
         docPreview.classList.remove('hidden');
-
         docStatus.textContent = `Imagen seleccionada: ${docFile.name} (${(docFile.size / 1024 / 1024).toFixed(2)} MB)`;
         docStatus.className = 'mt-1 text-xs text-green-600';
-        statusMsg.textContent = '';  // Limpia errores previos
-        statusMsg.className = 'mt-4 text-sm text-center text-gray-600 leading-relaxed';
+        statusMsg.textContent = '';  
         checkReadyToSubmit();
     } else {
         docStatus.textContent = '';
@@ -103,50 +139,48 @@ docInput.addEventListener('change', function (e) {
     }
 });
 
-// Capturar selfie
+// Capturar selfie (secuencial)
 captureBtn.addEventListener('click', function () {
-    if (stream && video.videoWidth > 0) {  // Chequeo extra para video listo
+    if (stream && video.videoWidth > 0 && currentStep < steps.length) {
         canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
         canvas.toBlob(function (blob) {
-            selfieBlob = blob;
-            previewImg.src = URL.createObjectURL(blob);
-            preview.classList.remove('hidden');
-            video.pause();  // Pausa para ahorrar batería
-            mensaje.textContent = '📸 Selfie capturada. Ahora confirma con el DUI.';
-            statusMsg.textContent = 'Selfie lista. Sube el DUI para verificar.';
-            statusMsg.className = 'mt-4 text-sm text-center text-green-600 leading-relaxed';
-            checkReadyToSubmit();
+            selfiesBlobs[currentStep] = blob;
+            console.log(`Selfie ${currentStep + 1} capturada: ${steps[currentStep].action}`);
+            // Avanza al siguiente paso
+            setTimeout(() => updateStep(currentStep + 1), 500);  // Pausa 0.5s para movimiento
         }, 'image/png');
     } else {
-        statusMsg.textContent = '❌ Video no listo. Espera o reinicia.';
+        statusMsg.textContent = '❌ Video no listo o pasos completos.';
         statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
     }
 });
 
-// Verificar si está listo para submit
+// Verificar si está listo para submit (DUI + 3 selfies)
 function checkReadyToSubmit() {
-    if (docFile && selfieBlob) {
+    if (docFile && selfiesBlobs.length === 3 && selfiesBlobs.every(blob => blob !== null)) {
         submitBtn.disabled = false;
         submitBtn.className = 'mt-4 w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors cursor-pointer shadow-md';
-        mensaje.textContent = '¡Listo! Envía para confirmar identidad con IA.';
+        mensaje.textContent = '¡Listo! Envía para verificación en vivo con IA.';
     } else {
         submitBtn.disabled = true;
         submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-colors';
     }
 }
 
-// Enviar al servidor (con IA)
+// Enviar al servidor (envía DUI + 3 selfies)
 submitBtn.addEventListener('click', function () {
-    if (!docFile || !selfieBlob) return;
+    if (!docFile || selfiesBlobs.length !== 3) return;
 
-    submitBtn.disabled = true;  // Deshabilita temporalmente
+    submitBtn.disabled = true;
     submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-colors';
-    statusMsg.textContent = 'Enviando a IA para verificación...';
+    statusMsg.textContent = 'Enviando selfies en vivo a IA para verificación...';
     statusMsg.className = 'mt-4 text-sm text-center text-blue-600 leading-relaxed';
 
     const formData = new FormData();
     formData.append('documento', docFile);
-    formData.append('selfie', selfieBlob, 'selfie.png');
+    selfiesBlobs.forEach((blob, i) => {
+        formData.append('selfie', blob, `selfie_${i + 1}.png`);
+    });
 
     fetch('/api/verify', {
         method: 'POST',
@@ -155,14 +189,12 @@ submitBtn.addEventListener('click', function () {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const resultMsg = data.match ? '✅ Identidad confirmada por IA!' : '❌ Identidad no confirmada por IA. Intenta de nuevo.';
-            statusMsg.textContent = `${resultMsg} Score: ${data.score.toFixed(1)}%. ${data.message}`;
+            const resultMsg = data.match ? '✅ Identidad confirmada en vivo por IA!' : '❌ No confirmada. Verifica movimiento o foto.';
+            statusMsg.textContent = `${resultMsg} Score: ${data.score.toFixed(1)}% | Liveness: ${data.liveness ? 'Alta' : 'Baja'}. ${data.message}`;
             statusMsg.className = data.match ? 'mt-4 text-sm text-center text-green-600 leading-relaxed' : 'mt-4 text-sm text-center text-red-600 leading-relaxed';
-            mensaje.textContent = data.match ? '¡Verificación exitosa! Puedes proceder.' : 'Mejora la iluminación o posición de la cara.';
-            if (data.duiText) {
-                console.log('Texto extraído del DUI:', data.duiText);
-            }
-            resetBtn.classList.remove('hidden'); // Muestra botón reset
+            mensaje.textContent = data.match ? '¡Verificación exitosa! Procede.' : 'Intenta con movimiento real (mira lados, parpadea).';
+            if (data.duiText) console.log('Texto DUI:', data.duiText);
+            resetBtn.classList.remove('hidden');
         } else {
             statusMsg.textContent = `❌ ${data.message}`;
             statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
@@ -179,23 +211,25 @@ submitBtn.addEventListener('click', function () {
     });
 });
 
-// Botón de Reset
+// Botón de Reset (igual, pero limpia array)
 resetBtn.addEventListener('click', function() {
-    // Limpia todo
     docInput.value = '';
+    selfiesBlobs = [];
+    currentStep = 0;
+    captureBtn.style.display = 'block';
+    captureBtn.textContent = '📸 Capturar';
     preview.classList.add('hidden');
     docPreview.classList.add('hidden');
-    video.play();  // Reanuda video
-    selfieBlob = null;
+    video.play();
     docFile = null;
     submitBtn.disabled = true;
     submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-colors';
     statusMsg.textContent = '';
     statusMsg.className = 'mt-4 text-sm text-center text-gray-600 leading-relaxed';
-    mensaje.textContent = 'Posiciónate frente a la cámara para nueva verificación.';
+    updateStep(0);  // Reinicia pasos
     docStatus.textContent = '';
     resetBtn.classList.add('hidden');
-    // Limpia URLs para evitar memory leaks
+    // Limpia URLs
     if (previewImg.src && previewImg.src.startsWith('blob:')) URL.revokeObjectURL(previewImg.src);
     if (docPreviewImg.src && docPreviewImg.src.startsWith('blob:')) URL.revokeObjectURL(docPreviewImg.src);
 });
@@ -205,8 +239,10 @@ window.addEventListener('beforeunload', function () {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
     }
-    // Limpia URLs
-    if (previewImg.src && previewImg.src.startsWith('blob:')) URL.revokeObjectURL(previewImg.src);
+    // Limpia URLs de selfies
+    selfiesBlobs.forEach(blob => {
+        if (blob && previewImg.src.startsWith('blob:')) URL.revokeObjectURL(previewImg.src);
+    });
     if (docPreviewImg.src && docPreviewImg.src.startsWith('blob:')) URL.revokeObjectURL(docPreviewImg.src);
 });
 

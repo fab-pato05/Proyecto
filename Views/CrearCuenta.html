@@ -9,6 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="bg-gray-50">
   <!-- Navbar -->
   <header>
@@ -28,8 +29,10 @@
           </svg>
         </button>
         <ul class="hidden md:flex space-x-6">
-          <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
-                    <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+          <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a>
+          </li>
+          <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y
+              Condiciones</a></li>
           <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600">Contacto</a></li>
         </ul>
         </div>
@@ -68,11 +71,8 @@
           </select>
 
           <label for="numero" class="block text-gray-700 font-medium mb-2">Número de documento</label>
-          <input type="text" id="dui" name="dui" 
-          pattern="\d{8}-\d"
-          maxlength="10"
-          requerid
-          title="Formato requerido: 8 digitos, guion, 1 digito."
+          <input type="text" id="dui" name="dui" pattern="\d{8}-\d" maxlength="10" requerid
+            title="Formato requerido: 8 digitos, guion, 1 digito."
             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600">
         </div>
 
@@ -92,6 +92,21 @@
                     focus:border-blue-500 cursor-pointer" max="2007-09-29" requerid>
         </div>
 
+        <!-- Sexo -->
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2">Sexo</label>
+          <div class="flex items-center space-x-6">
+            <label class="flex items-center">
+              <input type="radio" name="sexo" value="Femenino" class="text-indigo-600 focus:ring-indigo-500" required>
+              <span class="ml-2 text-gray-700">Femenino</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="sexo" value="Masculino" class="text-indigo-600 focus:ring-indigo-500">
+              <span class="ml-2 text-gray-700">Masculino</span>
+            </label>
+          </div>
+        </div>
+
         <!-- Contraseña -->
         <div class="mb-6">
           <label for="password" class="block text-gray-700 mb-2">Contraseña</label>
@@ -108,8 +123,8 @@
       </form>
     </div>
   </div>
-  <script src="Script.js"></script>
-  </body>
-
+  <script src="./Js/main.js"></script>
+  <script src="./Js/Script.js"></script>
+</body>
 
 </html>
