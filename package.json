@@ -20,6 +20,8 @@
   "homepage": "https://github.com/fab-pato05/Proyecto#readme",
   "dependencies": {
     "express": "^5.1.0",
-    "multer": "^2.0.2"
+    "jimp": "^1.6.0",
+    "multer": "^2.0.2",
+    "tesseract.js": "^6.0.1"
   }
 }
