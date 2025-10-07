@@ -1,4 +1,4 @@
-// Elementos del DOM
+// Elementos del DOM (fusionados: tuyos + overlay y progress)
 const video = document.getElementById('video');
 const captureBtn = document.getElementById('captureBtn');
 const canvas = document.getElementById('canvas');
@@ -13,6 +13,8 @@ const docPreviewImg = document.getElementById('docPreviewImg');
 const docStatus = document.getElementById('docStatus');
 const statusMsg = document.getElementById('statusMsg');
 const mensaje = document.getElementById('mensaje');
+const overlay = document.getElementById('overlay'); // Del mío
+const progressFill = document.getElementById('progressFill'); // Del mío
 
 let stream = null;
 let selfiesBlobs = [];  // Array para 3 selfies secuenciales
@@ -24,49 +26,91 @@ const steps = [
     { msg: 'Paso 3: Mira a la derecha y mantén 2s.', action: 'right' }
 ];
 
-// Función para inicializar cámara
-async function initCamera() {
-    try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 } }
-        });
-        stream = mediaStream;
-        video.srcObject = stream;
-
-        video.onloadedmetadata = () => {
-            video.play().catch(e => console.error('Error al reproducir video:', e));
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            updateStep(0);  // Inicia en paso 1
-            statusMsg.textContent = '✅ Cámara activada. Sigue las instrucciones para verificación en vivo.';
-            statusMsg.className = 'mt-4 text-sm text-center text-green-600 leading-relaxed';
-        };
-
-        video.onerror = () => {
-            statusMsg.textContent = '❌ Error en video. Verifica conexión.';
-            statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
-        };
-
-        console.log('🎥 Cámara inicializada correctamente.');
-    } catch (error) {
-        console.error('Error al acceder a la cámara:', error);
-        let errorMsg = 'Error en cámara: ';
-        if (error.name === 'NotAllowedError') {
-            errorMsg += 'Permiso denegado. Permite acceso en el navegador.';
-        } else if (error.name === 'NotFoundError') {
-            errorMsg += 'No se encontró cámara. Usa un dispositivo con webcam.';
-        } else if (error.name === 'NotSupportedError') {
-            errorMsg += 'Cámara no soportada. Prueba en Chrome/Firefox.';
-        } else {
-            errorMsg += error.message;
-        }
-        statusMsg.textContent = errorMsg;
-        statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
-        mensaje.textContent = 'No se puede usar la cámara. Carga la página en HTTPS (usa ngrok si es local).';
+// Función para actualizar progreso (del mío, adaptada)
+function updateProgress(percentage) {
+    if (progressFill) {
+        progressFill.style.width = percentage + '%';
     }
 }
 
-// Actualiza mensaje y botón según paso
+// Función para inicializar cámara (CORREGIDA: fallback y más checks)
+async function initCamera() {
+    // Check básico: ¿Existe mediaDevices?
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const errorMsg = '❌ Tu navegador no soporta la cámara. Usa Chrome o Firefox actualizado.';
+        statusMsg.textContent = errorMsg;
+        statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
+        console.error('MediaDevices no soportado');
+        return;
+    }
+
+    // Intenta primero con cámara frontal (selfie)
+    let constraints = {
+        video: { 
+            width: { ideal: 640 }, 
+            height: { ideal: 480 },
+            facingMode: 'user'
+        }
+    };
+
+    try {
+        console.log('Intentando acceder a la cámara frontal...');
+        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        stream = mediaStream;
+        video.srcObject = stream;
+        console.log('Cámara frontal accesible');
+    } catch (error) {
+        console.warn('Cámara frontal falló, intentando cámara predeterminada:', error);
+        // Fallback: sin facingMode (usa cámara default)
+        constraints.video.facingMode = undefined;
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            stream = mediaStream;
+            video.srcObject = stream;
+            console.log('Cámara predeterminada accesible');
+        } catch (fallbackError) {
+            console.error('Fallback falló:', fallbackError);
+            throw fallbackError; // Lanza el error para manejo general
+        }
+    }
+
+    // Configuración común después de obtener stream
+    video.onloadedmetadata = () => {
+        console.log('Video metadata cargada. Dimensiones:', video.videoWidth, 'x', video.videoHeight);
+        video.play().catch(e => {
+            console.error('Error al reproducir video:', e);
+            statusMsg.textContent = '❌ Error al reproducir video. Verifica permisos.';
+            statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
+        });
+        
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            updateStep(0);  // Inicia en paso 1
+            if (overlay) overlay.classList.remove('hidden');  // Muestra overlay
+            updateProgress(0);  // Progreso inicial
+            mensaje.textContent = 'Rostro detectado. Sigue los pasos para verificación en vivo.';
+            statusMsg.textContent = '✅ Cámara activada. Buena iluminación recomendada.';
+            statusMsg.className = 'mt-4 text-sm text-center text-green-600 leading-relaxed';
+            console.log('🎥 Cámara inicializada correctamente.');
+        } else {
+            throw new Error('Video no tiene dimensiones válidas');
+        }
+    };
+
+    video.onerror = (e) => {
+        console.error('Error en video element:', e);
+        statusMsg.textContent = '❌ Error en video. Verifica conexión o permisos.';
+        statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
+        if (overlay) overlay.classList.add('hidden');
+    };
+
+    video.onloadeddata = () => {
+        console.log('Video data cargada - cámara visible');
+    };
+}
+
+// Actualiza mensaje y botón según paso (tuya + overlay y progreso del mío)
 function updateStep(step) {
     currentStep = step;
     if (step < steps.length) {
@@ -74,19 +118,24 @@ function updateStep(step) {
         captureBtn.textContent = `📸 Capturar ${steps[step].action}`;
         preview.classList.add('hidden');  // Oculta preview hasta final
         selfiesBlobs[step] = null;  // Limpia blob anterior
+        if (overlay) overlay.classList.remove('hidden');  // Overlay visible en pasos
+        // Actualiza progreso: ~33% por paso completado
+        updateProgress(((step) / steps.length) * 100);
     } else {
         // Todos pasos completos
         mensaje.textContent = '¡Selfies capturadas! Ahora envía para IA.';
         captureBtn.style.display = 'none';  // Oculta botón captura
         preview.classList.remove('hidden');
+        if (overlay) overlay.classList.add('hidden');  // Oculta overlay al final
         showCompositePreview();  // Muestra preview combinado
+        updateProgress(100);  // Progreso completo para selfies
         checkReadyToSubmit();
     }
     statusMsg.textContent = `Paso ${step + 1} de ${steps.length}. Sigue las instrucciones para detectar movimiento real.`;
     statusMsg.className = 'mt-4 text-sm text-center text-blue-600 leading-relaxed';
 }
 
-// Captura compuesta para preview (combina 3 selfies)
+// Captura compuesta para preview (combina 3 selfies) - tuya
 function showCompositePreview() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = 300;
@@ -104,10 +153,25 @@ function showCompositePreview() {
     });
 }
 
-// Inicializar cámara al cargar la página
-document.addEventListener('DOMContentLoaded', initCamera);
+// Verificar si está listo para submit (DUI + 3 selfies) - tuya + clases dinámicas del mío
+function checkReadyToSubmit() {
+    if (docFile && selfiesBlobs.length === 3 && selfiesBlobs.every(blob => blob !== null)) {
+        submitBtn.disabled = false;
+        submitBtn.className = 'mt-4 w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all duration-200 shadow-lg cursor-pointer';
+        mensaje.textContent = '¡Listo! Envía para verificación en vivo con IA.';
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-xl font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-all duration-200 shadow-lg disabled:opacity-50';
+    }
+}
 
-// Manejo del input de documento (igual que antes)
+// Inicializar cámara al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM cargado, inicializando cámara...');
+    initCamera();
+});
+
+// Manejo del input de documento (tuya + clases del mío)
 docInput.addEventListener('change', function (e) {
     docFile = e.target.files[0];
     if (docFile) {
@@ -139,7 +203,7 @@ docInput.addEventListener('change', function (e) {
     }
 });
 
-// Capturar selfie (secuencial)
+// Capturar selfie (secuencial) - tuya + progreso del mío
 captureBtn.addEventListener('click', function () {
     if (stream && video.videoWidth > 0 && currentStep < steps.length) {
         canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -148,33 +212,24 @@ captureBtn.addEventListener('click', function () {
             console.log(`Selfie ${currentStep + 1} capturada: ${steps[currentStep].action}`);
             // Avanza al siguiente paso
             setTimeout(() => updateStep(currentStep + 1), 500);  // Pausa 0.5s para movimiento
+            // Actualiza progreso inmediatamente después de capturar
+            updateProgress((((currentStep + 1) / steps.length) * 100));
         }, 'image/png');
     } else {
-        statusMsg.textContent = '❌ Video no listo o pasos completos.';
+        statusMsg.textContent = '❌ Video no listo o pasos completos. Verifica la cámara.';
         statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
     }
 });
 
-// Verificar si está listo para submit (DUI + 3 selfies)
-function checkReadyToSubmit() {
-    if (docFile && selfiesBlobs.length === 3 && selfiesBlobs.every(blob => blob !== null)) {
-        submitBtn.disabled = false;
-        submitBtn.className = 'mt-4 w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors cursor-pointer shadow-md';
-        mensaje.textContent = '¡Listo! Envía para verificación en vivo con IA.';
-    } else {
-        submitBtn.disabled = true;
-        submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-colors';
-    }
-}
-
-// Enviar al servidor (envía DUI + 3 selfies)
+// Enviar al servidor (envía DUI + 3 selfies) - tuya + progreso del mío
 submitBtn.addEventListener('click', function () {
     if (!docFile || selfiesBlobs.length !== 3) return;
 
     submitBtn.disabled = true;
-    submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-colors';
+    submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-xl font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-all duration-200 shadow-lg';
     statusMsg.textContent = 'Enviando selfies en vivo a IA para verificación...';
     statusMsg.className = 'mt-4 text-sm text-center text-blue-600 leading-relaxed';
+    updateProgress(90);  // Progreso durante envío
 
     const formData = new FormData();
     formData.append('documento', docFile);
@@ -188,6 +243,7 @@ submitBtn.addEventListener('click', function () {
     })
     .then(response => response.json())
     .then(data => {
+        updateProgress(100);  // Progreso completo
         if (data.success) {
             const resultMsg = data.match ? '✅ Identidad confirmada en vivo por IA!' : '❌ No confirmada. Verifica movimiento o foto.';
             statusMsg.textContent = `${resultMsg} Score: ${data.score.toFixed(1)}% | Liveness: ${data.liveness ? 'Alta' : 'Baja'}. ${data.message}`;
@@ -199,7 +255,7 @@ submitBtn.addEventListener('click', function () {
             statusMsg.textContent = `❌ ${data.message}`;
             statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
             submitBtn.disabled = false;
-            submitBtn.className = 'mt-4 w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors cursor-pointer shadow-md';
+            submitBtn.className = 'mt-4 w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all duration-200 shadow-lg cursor-pointer';
         }
     })
     .catch(error => {
@@ -207,34 +263,42 @@ submitBtn.addEventListener('click', function () {
         statusMsg.textContent = '❌ Error de red. Verifica el servidor.';
         statusMsg.className = 'mt-4 text-sm text-center text-red-600 leading-relaxed';
         submitBtn.disabled = false;
-        submitBtn.className = 'mt-4 w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors cursor-pointer shadow-md';
+        submitBtn.className = 'mt-4 w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all duration-200 shadow-lg cursor-pointer';
+        updateProgress(0);  // Reset progreso en error
     });
 });
 
-// Botón de Reset (igual, pero limpia array)
+// Botón de Reset (igual, pero limpia array) - tuya + progreso del mío
 resetBtn.addEventListener('click', function() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
     docInput.value = '';
     selfiesBlobs = [];
     currentStep = 0;
     captureBtn.style.display = 'block';
-    captureBtn.textContent = '📸 Capturar';
+    captureBtn.textContent = '📸 Tomar Selfie';
     preview.classList.add('hidden');
     docPreview.classList.add('hidden');
-    video.play();
     docFile = null;
     submitBtn.disabled = true;
-    submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-colors';
-    statusMsg.textContent = '';
-    statusMsg.className = 'mt-4 text-sm text-center text-gray-600 leading-relaxed';
-    updateStep(0);  // Reinicia pasos
+    submitBtn.className = 'mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-xl font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-all duration-200 shadow-lg disabled:opacity-50';
+    statusMsg.textContent = 'Reiniciando...';
+    statusMsg.className = 'mt-4 text-sm text-center text-blue-600 leading-relaxed';
     docStatus.textContent = '';
     resetBtn.classList.add('hidden');
+    updateProgress(0);  // Reset progreso
     // Limpia URLs
     if (previewImg.src && previewImg.src.startsWith('blob:')) URL.revokeObjectURL(previewImg.src);
     if (docPreviewImg.src && docPreviewImg.src.startsWith('blob:')) URL.revokeObjectURL(docPreviewImg.src);
+    // Reinicia cámara
+    setTimeout(() => {
+        initCamera();
+    }, 500);
 });
 
-// Limpiar stream al cerrar
+// Limpiar stream al cerrar - tuya + progreso
 window.addEventListener('beforeunload', function () {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
