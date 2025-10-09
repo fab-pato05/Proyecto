@@ -59,8 +59,8 @@ async function guardarVerificacion(userId, duiText, score, match, liveness, edad
     try {
         await client.query(
             `INSERT INTO verificacion
-             (user_id, dui_text, score, match_result, liveness, edad_valida, documento_path, selfie_paths, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+            (user_id, dui_text, score, match_result, liveness, edad_valida, documento_path, selfie_paths, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
             [userId, duiText, score, match, liveness, edadValida, docPath, JSON.stringify(selfiePaths)]
         );
         console.log(`✅ Verificación guardada para userId: ${userId}`);
@@ -71,6 +71,11 @@ async function guardarVerificacion(userId, duiText, score, match, liveness, edad
         client.release();
     }
 }
+//forzar uso nativo de JS puro 
+process.env.TFJS_BACKEND = 'cpu';
+const tf = require('@tensorflow/tfjs');
+const faceapi = require('@vladmandic/face-api');
+
 
 // Inicializar Face API (con try-catch)
 async function initFaceApi() {
