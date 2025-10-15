@@ -12,7 +12,7 @@
     <h1 class="text-2xl font-semibold mb-4">Crear cuenta</h1>
     <p class="text-sm text-gray-500 mb-6">Rellena los datos para crear tu cuenta. Todos los campos con <span class="font-medium">*</span> son obligatorios.</p>
 
-    <form id="registerForm" novalidate class="space-y-6">
+    <form id="registerForm" action="/guardar-registerForm" method="POST" novalidate class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Nombres <span class="text-red-500">*</span></label>
@@ -49,6 +49,15 @@
           <p class="mt-1 text-xs text-red-600 hidden" id="err-email"></p>
         </div>
       </div>
+      <!-- NUEVA FILA PARA CELULAR -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Número de celular <span class="text-red-500">*</span></label>
+          <input id="celular" name="celular" type="tel" required pattern="[0-9]{8,15}" class="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-300 p-2" placeholder="Ej. 7123-4567" />
+          <p class="mt-1 text-xs text-red-600 hidden" id="err-celular"></p>
+        </div>
+      </div>
+      <!-- FIN NUEVA FILA -->
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -92,7 +101,7 @@
 </p>
 
       <div class="flex items-center justify-between">
-        <button onclick="window.location.href='Login.html'"  id="submitBtn" type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 disabled:opacity-60">Crear cuenta</button>
+        <button onclick="window.location.href='cotizador.html'"  id="submitBtn" type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 disabled:opacity-60">Crear cuenta</button>
         <button type="button" id="resetBtn" class="text-sm text-gray-600">Limpiar</button>
       </div>
     </form>

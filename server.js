@@ -1,5 +1,4 @@
-// 🚀 Servidor Express con OCR y PostgreSQL
-// Face-api.js ahora se ejecuta en el frontend (navegador)
+// 🚀 Servidor Express con OCR, PostgreSQL y manejo de formularios
 
 import express from "express";
 import multer from "multer";
@@ -10,6 +9,7 @@ import { Pool } from "pg";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt"; // ✅ IMPORTANTE
 
 dotenv.config();
 
@@ -20,11 +20,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-// === Servir archivos estáticos ===
-app.use(express.static(path.join(__dirname, "Views")));  // HTML, CSS, JS
-app.use("/models", express.static(path.join(__dirname, "models"))); // modelos Face-API
+// === Middlewares ===
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 📂 Configurar almacenamiento para uploads
+// === Servir archivos estáticos ===
+app.use(express.static(path.join(__dirname, "Views")));
+app.use("/models", express.static(path.join(__dirname, "models")));
+
+// === Configurar almacenamiento para uploads ===
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = path.join(__dirname, "uploads");
@@ -38,7 +43,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// 🧾 OCR con Tesseract.js
+// === OCR con Tesseract.js ===
 app.post("/ocr", upload.single("doc"), async (req, res) => {
     try {
         console.log("📄 Procesando documento OCR:", req.file.path);
@@ -50,7 +55,7 @@ app.post("/ocr", upload.single("doc"), async (req, res) => {
     }
 });
 
-// 🗄️ Conexión a PostgreSQL
+// === Conexión a PostgreSQL ===
 const pool = new Pool({
     user: process.env.PGUSER || "postgres",
     host: process.env.PGHOST || "localhost",
@@ -59,26 +64,122 @@ const pool = new Pool({
     port: process.env.PGPORT || 5432,
 });
 
-// 💾 Registrar usuario
-app.post("/register", async (req, res) => {
-    const { nombre, correo } = req.body;
+// === Registrar usuario ===
+app.post("/guardar-registerForm", async (req, res) => {
+    const {
+        nombre,
+        apellido,
+        sexo,
+        correo,
+        fecha_nacimiento,
+        tipo_documento,
+        numero_documento,
+        contrasena,
+    } = req.body;
+
     try {
-        const result = await pool.query(
-            "INSERT INTO usuarios (nombre, correo) VALUES ($1, $2) RETURNING *",
-            [nombre, correo]
+        const hash = await bcrypt.hash(contrasena, 10);
+
+        await pool.query(
+            `INSERT INTO usuarios
+      (nombre, apellido, sexo, correo, fecha_nacimiento, tipo_documento, numero_documento, contrasena)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [nombre, apellido, sexo, correo, fecha_nacimiento, tipo_documento, numero_documento, hash]
         );
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error("❌ Error al insertar usuario:", err);
-        res.status(500).json({ error: "Error en la base de datos" });
+
+        res.send("✅ Registro completado correctamente");
+    } catch (error) {
+        console.error("❌ Error al registrar usuario:", error);
+        res.status(500).send("Error al registrar usuario");
     }
 });
-// === Ruta principal ===
+
+// === Inicio de sesión ===
+app.post("/login", async (req, res) => {
+    const { correo, contrasena } = req.body;
+    const ip = req.ip;
+
+    try {
+        const resultado = await pool.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
+
+        if (resultado.rows.length === 0) {
+            await pool.query("INSERT INTO inicios_sesion (usuario_id, ip, exito) VALUES (NULL, $1, FALSE)", [ip]);
+            return res.send("❌ Usuario no encontrado");
+        }
+
+        const usuario = resultado.rows[0];
+        const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena);
+
+        if (passwordValida) {
+            await pool.query("INSERT INTO inicios_sesion (usuario_id, ip, exito) VALUES ($1, $2, TRUE)", [usuario.id, ip]);
+            res.send("✅ Inicio de sesión exitoso");
+        } else {
+            await pool.query("INSERT INTO inicios_sesion (usuario_id, ip, exito) VALUES ($1, $2, FALSE)", [usuario.id, ip]);
+            res.send("❌ Contraseña incorrecta");
+        }
+    } catch (error) {
+        console.error("❌ Error en el inicio de sesión:", error);
+        res.status(500).send("Error en el inicio de sesión");
+    }
+});
+
+// === Guardar cotización ===
+app.post("/guardar-cotizacionForm", async (req, res) => {
+    const {
+        nombre,
+        primerapellido,
+        segundoapellido,
+        celular,
+        correo,
+        monto_asegurar,
+        cesion_beneficios,
+        poliza,
+    } = req.body;
+
+    try {
+        await pool.query(
+            `INSERT INTO formulario_cotizacion
+      (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza]
+        );
+
+        res.send("✅ Cotización guardada correctamente");
+    } catch (err) {
+        console.error("❌ Error al guardar cotización:", err);
+        res.status(500).send("Error al guardar cotización");
+    }
+});
+
+// === Guardar contratación ===
+app.post("/guardar-contratacion", async (req, res) => {
+    const { usuario_id, nombre_completo, correo, celular } = req.body;
+
+    try {
+        const usuarioExiste = await pool.query("SELECT * FROM usuarios WHERE id = $1", [usuario_id]);
+        if (usuarioExiste.rows.length === 0) {
+            return res.send("❌ El usuario no existe, no se puede registrar la contratación");
+        }
+
+        await pool.query(
+            `INSERT INTO contrataciones (usuario_id, nombre_completo, correo, celular)
+      VALUES ($1, $2, $3, $4)`,
+            [usuario_id, nombre_completo, correo, celular]
+        );
+
+        res.send("✅ Contratación registrada correctamente y vinculada al usuario");
+    } catch (error) {
+        console.error("❌ Error al registrar la contratación:", error);
+        res.status(500).send("Error al registrar contratación");
+    }
+});
+
+// === Página principal ===
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "Views/Index.html"));
 });
 
-// 🟢 Iniciar servidor
+// === Iniciar servidor ===
 app.listen(PORT, () => {
     console.log(`🚀 Servidor activo en http://localhost:${PORT}`);
 });
