@@ -3,9 +3,9 @@ const { Pool } = require('pg');
 
 // Configuración de conexión
 const pool = new Pool({
-    user: 'postgres',        // tu usuario de PostgreSQL
-    host: 'localhost',       // o IP del servidor
-    database: 'circulo_seguro',  // el nombre de tu base de datos
+    user: 'postgres',        //  usuario de PostgreSQL
+    host: 'localhost',       // IP del servidor
+    database: 'circulo_seguro',  // nombre de  base de datos
     password: '1234', // la contraseña del usuario postgres
     port: 5432,              // puerto por defecto
 });

@@ -10,3 +10,13 @@ document.getElementById("cotizacionForm").addEventListener("submit", function (e
     alert("Formulario enviado con éxito ✅");
     this.reset();
 });
+        document.getElementById("cotizacionForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            localStorage.setItem("cotizacion", JSON.stringify(data));
+
+            alert(`Has seleccionado la póliza: ${data.tipoPoliza}`);
+            window.location.href = "contratar.html"; // redirige a la siguiente página
+        });
