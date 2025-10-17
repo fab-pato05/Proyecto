@@ -1,5 +1,4 @@
 // 🚀 Servidor Express con OCR, PostgreSQL y manejo de formularios
-
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -9,7 +8,7 @@ import { Pool } from "pg";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import bcrypt from "bcrypt"; // ✅ IMPORTANTE
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -28,6 +27,15 @@ app.use(express.urlencoded({ extended: true }));
 // === Servir archivos estáticos ===
 app.use(express.static(path.join(__dirname, "Views")));
 app.use("/models", express.static(path.join(__dirname, "models")));
+
+// === Rutas GET de páginas ===
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "Views/Index.html"));
+});
+
+app.get("/cotizador", (req, res) => {
+    res.sendFile(path.join(__dirname, "cotizador.html"));
+});
 
 // === Configurar almacenamiento para uploads ===
 const storage = multer.diskStorage({
@@ -66,37 +74,53 @@ const pool = new Pool({
 
 // === Registrar usuario ===
 app.post("/guardar-registerForm", async (req, res) => {
-    const {
-        nombre,
-        apellido,
-        sexo,
-        correo,
-        fecha_nacimiento,
-        tipo_documento,
-        numero_documento,
-        contrasena,
-    } = req.body;
-
     try {
-        const hash = await bcrypt.hash(contrasena, 10);
+        const {
+            nombres,
+            apellidos,
+            sexo,
+            correo,
+            celular,
+            fechaNacimiento,
+            tipoDocumento,
+            numeroDocumento,
+            contrasena,
+        } = req.body;
 
-        await pool.query(
-            `INSERT INTO usuarios
-      (nombre, apellido, sexo, correo, fecha_nacimiento, tipo_documento, numero_documento, contrasena)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [nombre, apellido, sexo, correo, fecha_nacimiento, tipo_documento, numero_documento, hash]
-        );
+        console.log("📩 Datos recibidos:", req.body);
 
-        res.send("✅ Registro completado correctamente");
+        const hashedPassword = await bcrypt.hash(contrasena, 10);
+
+        const query = `
+            INSERT INTO usuarios 
+            (nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, contrasena)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `;
+
+        const values = [
+            nombres,
+            apellidos,
+            sexo,
+            correo,
+            celular,
+            fechaNacimiento,
+            tipoDocumento,
+            numeroDocumento,
+            hashedPassword
+        ];
+        await pool.query(query, values);
+        console.log("✅ Usuario registrado con éxito");
+        // Respuesta JSON para frontend
+        res.status(200).json({ ok: true });
     } catch (error) {
         console.error("❌ Error al registrar usuario:", error);
-        res.status(500).send("Error al registrar usuario");
+        res.status(500).json({ ok: false, message: "Error al registrar usuario" });
     }
 });
-
 // === Inicio de sesión ===
 app.post("/login", async (req, res) => {
     const { correo, contrasena } = req.body;
+    console.log("📩 Datos recibidos:", req.body);
     const ip = req.ip;
 
     try {
@@ -125,6 +149,7 @@ app.post("/login", async (req, res) => {
 
 // === Guardar cotización ===
 app.post("/guardar-cotizacionForm", async (req, res) => {
+    console.log("📩 Datos recibidos:", req.body);
     const {
         nombre,
         primerapellido,
@@ -138,7 +163,7 @@ app.post("/guardar-cotizacionForm", async (req, res) => {
 
     try {
         await pool.query(
-            `INSERT INTO formulario_cotizacion
+            `INSERT INTO FormularioCotizacion
       (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
             [nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza]
@@ -154,6 +179,7 @@ app.post("/guardar-cotizacionForm", async (req, res) => {
 // === Guardar contratación ===
 app.post("/guardar-contratacion", async (req, res) => {
     const { usuario_id, nombre_completo, correo, celular } = req.body;
+    console.log("📩 Datos recibidos:", req.body);
 
     try {
         const usuarioExiste = await pool.query("SELECT * FROM usuarios WHERE id = $1", [usuario_id]);
