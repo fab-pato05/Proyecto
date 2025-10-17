@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/cotizador", (req, res) => {
-    res.sendFile(path.join(__dirname, "cotizador.html"));
+    res.sendFile(path.join(__dirname, "Views", "cotizador.html"));
 });
 
 // === Configurar almacenamiento para uploads ===

@@ -15,5 +15,5 @@ document.getElementById("contratarForm").addEventListener("submit", function (e)
     };
 
     localStorage.setItem("contrato", JSON.stringify(datos));
-    window.location.href = "registro.html";
+    window.location.href = "VerificacionBio.html";
 });

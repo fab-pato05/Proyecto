@@ -112,14 +112,12 @@
     <!-- Contenedor para mostrar mensajes -->
     <div id="mensaje" style="margin-top:10px; color: green; font-weight: bold;"></div>
   </main>
-</body>
-
-<script>
+  <script>
 const form = document.getElementById("registerForm");
 const mensaje = document.getElementById("mensaje");
 
 form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // evita el submit normal
+    e.preventDefault(); // evita envío normal del formulario
 
     const formData = new FormData(form);
     const data = new URLSearchParams(formData);
@@ -133,13 +131,12 @@ form.addEventListener("submit", async (e) => {
         const result = await res.json();
 
         if (result.ok) {
-            // Mostrar mensaje de éxito
             mensaje.style.color = "green";
             mensaje.textContent = "✅ Registro exitoso. Redirigiendo al cotizador...";
-            
+
             // Esperar 2 segundos y redirigir
             setTimeout(() => {
-                window.location.href = "/cotizador";
+                window.location.href = "/cotizador.htlm";
             }, 2000);
         } else {
             mensaje.style.color = "red";
@@ -153,3 +150,5 @@ form.addEventListener("submit", async (e) => {
     }
 });
 </script>
+</body>
+</html>
