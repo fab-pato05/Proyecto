@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Metadatos básicos -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Borrador con Tailwind - Círculo Seguro</title>
+  
+  <!-- Estilos y scripts externos -->
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script> <!-- Tailwind CDN para estilos responsivos -->
+  <script src="https://unpkg.com/feather-icons"></script> <!-- Íconos Feather (si los usas) -->
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Header con navegación principal -->
+  <header>
+    <nav class="bg-white shadow-md">
+      <!-- Barra superior con logo y menú (responsiva) -->
+      <div class="bg-gray-100 px-6 py-3 flex items-center justify-between">
+        <!-- Sección izquierda: Logo y título -->
+        <div class="flex items-center">
+          <img src="img/LOGO_CS.jpg" alt="Logo de Círculo Seguro" class="w-12 h-12 rounded-full mr-3">
+          <h1 class="text-xl font-bold text-gray-800">Círculo Seguro</h1>
+        </div>
+        
+        <!-- Botón hamburger para dispositivos móviles (md:hidden oculta en desktop) -->
+        <button class="md:hidden text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
+          <!-- Ícono de menú (puedes reemplazar con Feather si lo usas) -->
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+        </button>
+        
+        <!-- Menú de navegación desktop (oculto en móvil con hidden md:flex) -->
+        <ul class="hidden md:flex items-center space-x-6">
+          <li><a href="CrearCuenta.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Cotiza tu seguro</a></li>
+          <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
+          <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
+                    <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="container mx-auto px-6 my-10">
+    <!-- Sección de bienvenida -->
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-bold text-blue-500 mb-4">Bienvenido a Círculo Seguro</h1>
+      <h2 class="text-2xl font-semibold text-purple-600 mb-3">Sobre Nosotros</h2>
+      <p class="text-lg leading-relaxed mb-2">
+        Somos un sitio dedicado a verificar tus seguros de vida. Nuestro equipo se dedica
+        al buen manejo de tus datos personales.
+      </p>
+      <p class="text-lg leading-relaxed mb-2">
+        Desde 2025 tus datos están protegidos con nuestro sistema de tecnologías biométricas
+        y cifrado de datos.
+      </p>
+      <p class="font-semibold text-indigo-600">Confía en nosotros</p>
+    </div>
+
+    <!-- Sección de cobertura: ¿Qué cubrimos? -->
+    <section class="mb-12">
+      <h2 class="text-3xl font-bold text-center text-blue-700 mb-10">¿Qué cubrimos?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <!-- Tarjeta 1: ACCIDENTES PERSONALES -->
+        <div class="border border-blue-500 rounded-xl p-6 bg-white flex flex-col justify-between">
+          <h3 class="text-xl font-bold text-blue-700 mb-4">ACCIDENTES PERSONALES</h3>
+          <ul class="space-y-2 text-gray-700 flex-1">
+            <li>❌ Fallecimiento</li>
+            <li>✅ Fallecimiento por accidente</li>
+            <li>✅ Anticipo de capital por invalidez total y permanente</li>
+            <li>❌ Invalidez por enfermedad</li>
+            <li>✅ Invalidez por accidente</li>
+            <li>✅ Gastos funerarios</li>
+            <li>❌ Enfermedades graves</li>
+            <li>✅ Renta diaria por hospitalización y accidente</li>
+            <li>✅ Gastos de curación por accidente</li>
+            <li>❌ Cáncer</li>
+            <li>❌ Asistencia en orientación nutricional</li>
+            <li>❌ Asistencia en orientación psicológica</li>
+          </ul>
+          <button onclick="window.location.href='./Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+        </div>
+
+        <!-- Tarjeta 2: PLAN VIDA PERSONAL (destacada) -->
+        <div class="relative border border-blue-500 rounded-xl p-6 bg-white shadow-lg scale-105 flex flex-col justify-between">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-sm font-bold px-3 py-1 rounded">¡El más elegido!</span>
+          <h3 class="text-xl font-bold text-blue-700 mb-4">PLAN VIDA PERSONAL</h3>
+          <ul class="space-y-2 text-gray-700 flex-1">
+            <li>✅ Fallecimiento</li>
+            <li>✅ Fallecimiento por accidente</li>
+            <li>❌ Anticipo de capital por invalidez total y permanente</li>
+            <li>✅ Invalidez por enfermedad</li>
+            <li>✅ Invalidez por accidente</li>
+            <li>✅ Gastos funerarios</li>
+            <li>✅ Enfermedades graves</li>
+            <li>✅ Renta diaria por hospitalización y accidente</li>
+            <li>✅ Gastos de curación por accidente</li>
+            <li>✅ Cáncer</li>
+            <li>✅ Asistencia en orientación nutricional</li>
+            <li>✅ Asistencia en orientación psicológica</li>
+          </ul>
+          <button onclick="window.location.href='./Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+        </div>
+
+        <!-- Tarjeta 3: VIDA MÚLTIPLE -->
+        <div class="border border-blue-200 rounded-xl p-6 bg-white flex flex-col justify-between">
+          <h3 class="text-xl font-bold text-blue-700 mb-4">VIDA MÚLTIPLE</h3>
+          <ul class="space-y-2 text-gray-700 flex-1">
+            <li>✅ Fallecimiento</li>
+            <li>✅ Fallecimiento por accidente</li>
+            <li>✅ Anticipo de capital por invalidez total y permanente</li>
+            <li>❌ Invalidez por enfermedad</li>
+            <li>❌ Invalidez por accidente</li>
+            <li>✅ Gastos funerarios</li>
+            <li>❌ Enfermedades graves</li>
+            <li>❌ Renta diaria por hospitalización y accidente</li>
+            <li>✅ Gastos de curación por accidente</li>
+            <li>✅ Cáncer</li>
+            <li>✅ Asistencia en orientación nutricional</li>
+            <li>✅ Asistencia en orientación psicológica</li>
+          </ul>
+          <button class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de beneficios -->
+    <section class="mb-12">
+      <h2 class="text-3xl font-bold text-center text-blue-700 mb-10">Nuestros Beneficios</h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto text-center">
+        <!-- Beneficio 1 -->
+        <div>
+          <div class="w-16 h-16 mx-auto bg-sky-500 rounded-full flex items-center justify-center text-white">
+            <i data-feather="dollar-sign" class="w-8 h-8"></i>
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-gray-900">Respaldo</h3>
+          <p class="mt-2 text-gray-600 text-sm">Respaldo económico para tus seres queridos/beneficiarios, en caso de que faltes.</p>
+        </div>
+
+        <!-- Beneficio 2 -->
+        <div>
+          <div class="w-16 h-16 mx-auto bg-sky-500 rounded-full flex items-center justify-center text-white">
+            <i data-feather="heart" class="w-8 h-8"></i>
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-gray-900">Calidad de vida</h3>
+          <p class="mt-2 text-gray-600 text-sm">Tienes un respaldo para mantener tu calidad de vida en caso de invalidez o accidente.</p>
+        </div>
+
+        <!-- Beneficio 3 -->
+        <div>
+          <div class="w-16 h-16 mx-auto bg-sky-500 rounded-full flex items-center justify-center text-white">
+            <i data-feather="refresh-cw" class="w-8 h-8"></i>
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-gray-900">Cesión de beneficios</h3>
+          <p class="mt-2 text-gray-600 text-sm">Puedes ceder los beneficios de tu seguro para un crédito bancario.</p>
+        </div>
+
+        <!-- Beneficio 4 -->
+        <div>
+          <div class="w-16 h-16 mx-auto bg-sky-500 rounded-full flex items-center justify-center text-white">
+            <i data-feather="calendar" class="w-8 h-8"></i>
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-gray-900">Tiempo</h3>
+          <p class="mt-2 text-gray-600 text-sm">Eliges el tiempo de cobertura que necesitas.</p>
+        </div>
+      </div>
+    </section>
+    
+
+    <!-- Sección Misión y Visión -->
+    <section class="grid md:grid-cols-2 gap-8 mb-12">
+      <!-- Misión -->
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h3 class="text-xl font-semibold text-indigo-600 mb-4">Misión</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li>Verificar protección financiera.</li>
+          <li>Actualizaciones sobre los seguros de vida.</li>
+          <li>Implementar tranquilidad para las familias a través de seguros accesibles y confiables.</li>
+          <li>Cada servicio es personalizado, seguro y transparente.</li>
+          <li>Darte accesibilidad para proteger tus datos con seguridad y confianza.</li>
+          <li>Garantizar tu tranquilidad en el futuro.</li>
+        </ul>
+      </div>
+      
+      <!-- Visión -->
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h3 class="text-xl font-semibold text-indigo-600 mb-4">Visión</h3>
+        <p class="text-gray-700 mb-3">
+          Ser la empresa de seguros de vida referente en la región, innovando con nuevas
+          tecnologías para la protección de datos, acompañando a las familias en todas las
+          etapas de su vida garantizando seguridad, respaldo y bienestar para las futuras generaciones.
+        </p>
+        <p class="text-gray-700">
+          Soñamos con un futuro en donde todas las personas puedan tener acceso a nuestros
+          beneficios, a un seguro de vida confiable, tomando en cuenta la seguridad y el
+          bienestar de las familias como base para construir una sociedad más unida, fuerte
+          y preparada para cualquier reto.
+        </p>
+      </div>
+    </section>
+  </main>
+  <p class="text-center text-sm text-gray-600 mt-4">
+  ¿Ya tienes una cuenta?
+  <a href="login.html" class="text-blue-600 hover:underline font-semibold">
+    Inicia sesión aquí
+  </a>
+</p>
+
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white py-6 mt-10">
+    <div class="container mx-auto text-center">
+      <p class="mb-1">Contacto: Circulo_Seguro@hotmail.com</p>
+      <p>&copy; <span id="year"></span> Círculo Seguro. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    // Inicializar Feather Icons
+    feather.replace();
+    
+    // Establecer año actual en el footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script src="Js/main.js"></script>
+</body>
+
+</html>

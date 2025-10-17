@@ -1,0 +1,39 @@
+
+
+body, html {
+    background-image: url("img/FONDO-CS.jpg") !important;
+    background-size: cover;
+}
+
+        /* Animaciones personalizadas para dinamismo */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        
+        /* Ocultar canvas inicialmente */
+        #canvas { display: none; }
+        #canvas.show { display: block; }
+        
+        /* Efecto de carga para botones */
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        } 
+video {
+  width: 100%;
+  height: 300px;
+  background: black; /* para ver que carga algo */
+  border-radius: 12px;
+}

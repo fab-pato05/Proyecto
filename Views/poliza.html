@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel - Mi Póliza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside class="bg-sky-700 text-white w-64 p-6 space-y-6 hidden md:block">
+        <h2 class="text-2xl font-bold">MiSeguro</h2>
+        <nav class="space-y-4">
+            <a href="#" class="block hover:bg-indigo-500 p-2 rounded">🏠 Inicio</a>
+            <a href="#" class="block bg-indigo-500 p-2 rounded font-semibold">📄 Mi Póliza</a>
+            <a href="#" class="block hover:bg-indigo-500 p-2 rounded">💳 Pagos</a>
+            <a href="#" class="block hover:bg-indigo-500 p-2 rounded">👨‍👩‍👧 Beneficiarios</a>
+            <a href="#" class="block hover:bg-indigo-500 p-2 rounded">📥 Documentos</a>
+            <a href="#" class="block hover:bg-indigo-500 p-2 rounded">❓ Soporte</a>
+        </nav>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="flex-1 p-8 space-y-8">
+        <!-- Encabezado -->
+        <div class="bg-white shadow-lg rounded-2xl p-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Hola, Usuario 👋</h1>
+                <p class="text-gray-600">
+                    Gracias por confiar en nosotros. Tu póliza está
+                    <span class="text-green-600 font-semibold">ACTIVA</span>.
+                </p>
+            </div>
+            <img src="https://cdn-icons-png.flaticon.com/512/2922/2922510.png" alt="avatar"
+                class="w-16 h-16 rounded-full">
+        </div>
+
+        <!-- Información de la póliza -->
+        <section class="bg-white p-8 rounded-2xl shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 text-center text-blue-800">Mi Póliza</h2>
+            <div id="info" class="text-gray-700 space-y-1"></div>
+        </section>
+
+        <!-- Detalles adicionales -->
+        <section class="grid md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow">
+                <h3 class="font-bold text-lg mb-2">Número de Póliza</h3>
+                <p class="text-gray-700">SV-2039482</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow">
+                <h3 class="font-bold text-lg mb-2">Monto Asegurado</h3>
+                <p class="text-gray-700">$50,000</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow">
+                <h3 class="font-bold text-lg mb-2">Vigencia</h3>
+                <p class="text-gray-700">10/02/2024 - 10/02/2044</p>
+            </div>
+        </section>
+
+        <!-- Cerrar sesión -->
+        <div class="text-center mt-8">
+            <a href="index.html" class="text-blue-600 underline hover:text-blue-800 transition">
+                Cerrar sesión
+            </a>
+        </div>
+    </main>
+
+    <!-- Script -->
+    <script>
+        const user = JSON.parse(localStorage.getItem("usuario"));
+        const info = document.getElementById("info");
+
+        if (user && user.contrato) {
+            const c = user.contrato;
+            info.innerHTML = `
+        <p><strong>Nombre:</strong> ${c.nombre}</p>
+        <p><strong>Email:</strong> ${c.email}</p>
+        <p><strong>Teléfono:</strong> ${c.telefono}</p>
+        <hr class="my-3 border-gray-300">
+        <p><strong>Seguro:</strong> $${c.cotizacion.monto}</p>
+        <p><strong>Precio anual:</strong> $${c.cotizacion.precio}</p>
+        <p><strong>Edad:</strong> ${c.cotizacion.edad} años</p>
+        <p><strong>Sexo:</strong> ${c.cotizacion.sexo}</p>
+      `;
+        } else {
+            info.innerHTML = "<p class='text-gray-500'>No hay póliza registrada.</p>";
+        }
+    </script>
+</body>
+
+</html>

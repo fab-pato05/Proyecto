@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Íconos Feather (opcional) -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Script externo -->
+  <script defer src="js/login.js"></script>
+</head>
+
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white shadow-md">
+    <nav class="px-6 py-3 flex items-center justify-between">
+      <!-- Logo y título -->
+      <div class="flex items-center">
+        <img src="img/LOGO_CS.jpg" alt="Logo de Círculo Seguro" class="w-12 h-12 rounded-full mr-3">
+        <h1 class="text-xl font-bold text-gray-800">Círculo Seguro</h1>
+      </div>
+
+      <!-- Botón menú móvil -->
+      <button class="md:hidden text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <!-- Menú desktop -->
+      <ul class="hidden md:flex items-center space-x-6">
+        <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
+        <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
+        <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="flex flex-grow justify-center items-center px-4">
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md mt-8">
+      <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Inicia Sesión</h2>
+      <form id="loginForm" action="loginForm" method="POST" class="space-y-4">
+        <input type="text" id="usuario" placeholder="Usuario" required
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="password" id="password" placeholder="Contraseña" required
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button  onclick="window.location.href='VerificacionBio.html'" type="submit"
+          class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Entrar</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Script para manejo del login -->
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const user = JSON.parse(localStorage.getItem("usuario"));
+      const usuario = document.getElementById("usuario").value;
+      const password = document.getElementById("password").value;
+
+      if (user && user.usuario === usuario && user.password === password) {
+        alert("Inicio de sesión exitoso");
+        window.location.href = "poliza.html";
+      } else {
+        alert("Usuario o contraseña incorrectos");
+      }
+    });
+
+    // Activar íconos Feather (si los usas)
+    feather.replace();
+  </script>
+</body>
+</html>

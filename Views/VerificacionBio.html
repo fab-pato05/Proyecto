@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación Biométrica Segura</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configuración personalizada de Tailwind para colores y temas
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Animación fade-in personalizada */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Animación para el marco del rostro */
+        .face-frame {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        /* Overlay semi-transparente */
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-radius: inherit;
+        }
+        .progress-bar {
+            width: 80%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-primary-50 to-blue-100 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl p-6 md:p-8 fade-in relative">
+        <!-- Header con ícono de seguridad -->
+        <div class="text-center mb-6">
+            <div class="mx-auto w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center mb-3">
+                <span class="text-white text-xl">🔒</span> <!-- Ícono de candado; reemplaza con SVG si quieres -->
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">Verificación Biométrica Segura</h1>
+            <p class="text-sm text-gray-600 mt-1">Confirma tu identidad de forma rápida y privada.</p>
+        </div>
+
+        <!-- Mensaje dinámico -->
+        <div id="mensaje" class="mb-6 text-center text-gray-700 text-sm leading-relaxed bg-primary-50 p-3 rounded-lg">
+            Posiciónate frente a la cámara y mantén buena iluminación para la selfie.
+        </div>
+
+        <!-- Documento (solo imágenes) -->
+        <div class="mb-6">
+            <label for="docInput" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                📄 Foto del Documento (DUI o Pasaporte)
+                <span class="ml-2 text-xs text-gray-500">(Solo JPG/PNG)</span>
+            </label>
+            <input type="file" id="docInput" accept="image/*"
+                class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700 transition-all duration-200">
+            <p id="docStatus" class="mt-1 text-xs text-gray-500"></p>
+            <!-- Preview del documento -->
+            <div id="docPreview" class="mt-3 hidden bg-gray-50 p-3 rounded-lg">
+                <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Preview del Documento:</h3>
+                <img id="docPreviewImg" alt="Vista previa de tu documento de identidad"
+                    class="w-32 h-32 mx-auto rounded-lg border-2 border-gray-300 shadow-md object-cover">
+            </div>
+        </div>
+
+        <!-- Cámara y Captura con Overlay -->
+        <div class="relative mb-4">
+            <video id="video" autoplay muted class="w-full rounded-xl border-2 border-gray-300 bg-black"
+                playsinline aria-label="Cámara para selfie"></video>
+            <div class="camera-overlay hidden" id="overlay">
+                <div class="face-frame mb-2">
+                    <svg viewBox="0 0 100 100" class="w-24 h-24 text-white">
+                        <circle cx="50" cy="50" r="35" stroke="currentColor" stroke-width="3" fill="none" opacity="0.9"/>
+                        <path d="M30 50 Q50 30 70 50 Q50 70 30 50" stroke="currentColor" stroke-width="2" fill="none" opacity="0.7"/>
+                    </svg>
+                </div>
+                <p class="text-sm text-center">Centra tu rostro en el marco</p>
+            </div>
+            <!-- Barra de Progreso -->
+            <div class="progress-bar mt-2" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <canvas id="canvas" class="hidden"></canvas>
+        <button id="captureBtn"
+            class="w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all duration-200 shadow-lg flex items-center justify-center">
+            📸 Tomar Selfie
+        </button>
+
+        <!-- Preview de Selfie -->
+        <div id="preview" class="mt-6 hidden bg-gray-50 p-4 rounded-xl">
+            <h2 class="text-lg font-semibold mb-3 text-center text-gray-800 flex items-center justify-center">
+                📷 Tus Selfies Confirmadas
+            </h2>
+            <img id="previewImg" alt="Vista previa compuesta de tus selfies biométricas"
+                class="w-48 h-48 mx-auto rounded-xl border-2 border-primary-300 shadow-lg object-cover">
+        </div>
+
+        <button id="submitBtn" disabled
+            class="mt-4 w-full bg-gray-400 text-white py-3 px-4 rounded-xl font-semibold cursor-not-allowed hover:bg-gray-500 focus:outline-none transition-all duration-200 shadow-lg disabled:opacity-50">
+            🚀 Verificar con IA (Envío Seguro)
+        </button>
+
+        <!-- Botón de Reset -->
+        <button id="resetBtn"
+            class="mt-3 w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-semibold hidden hover:bg-gray-300 focus:outline-none transition-all duration-200">
+            🔄 Iniciar Nueva Verificación
+        </button>
+
+        <!-- Mensaje de Estado (con clases dinámicas) -->
+        <p id="statusMsg" class="mt-4 text-sm text-center text-gray-600 leading-relaxed italic"></p>
+
+        <!-- Nota de Seguridad -->
+        <div class="mt-6 pt-4 border-t border-gray-200">
+            <p class="text-xs text-gray-500 text-center">
+                🔐 Tus datos están protegidos con encriptación SSL. Cumplimos con normativas de privacidad (GDPR/CCPA). No almacenamos biometría sin consentimiento.
+            </p>
+        </div>
+    </div>
+    <!-- Face-API.js desde CDN (Frontend) -->
+<script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+<script src="Js/main.js"></script>
+</body>
+</html>
