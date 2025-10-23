@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificación Biométrica Segura</title>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -86,27 +87,26 @@
         </div>
 
         <!-- Mensaje dinámico -->
-        <div id="mensaje" class="mb-6 text-center text-gray-700 text-sm leading-relaxed bg-primary-50 p-3 rounded-lg">
+        <div id="mensajeUsuario" class="mb-6 text-center text-gray-700 text-sm leading-relaxed bg-primary-50 p-3 rounded-lg">
             Posiciónate frente a la cámara y mantén buena iluminación para la selfie.
         </div>
 
         <!-- Documento (solo imágenes) -->
-        <div class="mb-6">
-            <label for="docInput" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                📄 Foto del Documento (DUI o Pasaporte)
-                <span class="ml-2 text-xs text-gray-500">(Solo JPG/PNG)</span>
-            </label>
-            <input type="file" id="docInput" accept="image/*"
-                class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700 transition-all duration-200">
-            <p id="docStatus" class="mt-1 text-xs text-gray-500"></p>
-            <!-- Preview del documento -->
-            <div id="docPreview" class="mt-3 hidden bg-gray-50 p-3 rounded-lg">
-                <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Preview del Documento:</h3>
-                <img id="docPreviewImg" alt="Vista previa de tu documento de identidad"
-                    class="w-32 h-32 mx-auto rounded-lg border-2 border-gray-300 shadow-md object-cover">
-            </div>
-        </div>
-
+<div class="mb-6">
+    <label for="docInput" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+        📄 Foto del Documento (DUI o Pasaporte)
+        <span class="ml-2 text-xs text-gray-500">(Solo JPG/PNG)</span>
+    </label>
+    <input type="file" id="docInput" accept="image/*"
+        class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-600 file:text-white hover:file:bg-primary-700 transition-all duration-200">
+    <p id="docStatus" class="mt-1 text-xs text-gray-500"></p>
+    <!-- Vista previa del documento (nuevo) -->
+    <div id="docPreview" class="mt-3 hidden bg-gray-50 p-3 rounded-lg">
+        <h3 class="text-sm font-semibold text-gray-700 mb-2 text-center">Vista Previa del Documento:</h3>
+        <img id="docPreviewImg" alt="Vista previa de tu documento"
+            class="w-32 h-32 mx-auto rounded-lg border-2 border-gray-300 shadow-md object-cover">
+    </div>
+</div>
         <!-- Cámara y Captura con Overlay -->
         <div class="relative mb-4">
             <video id="video" autoplay muted class="w-full rounded-xl border-2 border-gray-300 bg-black"
@@ -125,12 +125,21 @@
                 <div class="progress-fill" id="progressFill"></div>
             </div>
         </div>
-        
-        <canvas id="canvas" class="hidden"></canvas>
-        <button id="captureBtn"
-            class="w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all duration-200 shadow-lg flex items-center justify-center">
-            📸 Tomar Selfie
-        </button>
+
+<canvas id="canvas" class="hidden"></canvas>
+
+<!-- Vista previa de Selfie (nuevo) -->
+<div id="selfiePreview" class="mt-4 hidden bg-gray-50 p-4 rounded-xl">
+    <h2 class="text-lg font-semibold mb-3 text-center text-gray-800">📷 Selfie Capturada</h2>
+    <img id="selfiePreviewImg" alt="Vista previa de tu selfie"
+        class="w-48 h-48 mx-auto rounded-xl border-2 border-primary-300 shadow-lg object-cover">
+</div>
+
+<button id="captureBtn"
+    class="w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all duration-200 shadow-lg">
+    📸 Tomar Selfie
+</button>
+
 
         <!-- Preview de Selfie -->
         <div id="preview" class="mt-6 hidden bg-gray-50 p-4 rounded-xl">
@@ -162,8 +171,14 @@
             </p>
         </div>
     </div>
-    <!-- Face-API.js desde CDN (Frontend) -->
-<script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-<script src="Js/main.js"></script>
+<!-- Scripts de MediaPipe (desde CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029077/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1624454559/drawing_utils.js"></script>
+
+<!-- Tu script main.js, ahora como módulo -->
+<script type="module" src="Js/main.js"></script>
+
 </body>
 </html>
