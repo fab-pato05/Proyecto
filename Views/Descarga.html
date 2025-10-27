@@ -8,7 +8,34 @@
   <!---Tailwind CDN--->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-50 text-gray-800">
+  <!-- Navbar -->
+  <header>
+    <nav class="bg-white shadow-md">
+      <div class="bg-gray-100 px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center">
+          <a href="Contacto.html" class="flex items-center">
+            <img src="img/LOGO_CS.jpg" alt="Logo" class="w-14 h-14 rounded-full mr-4">
+            <h1 class="text-xl font-bold text-gray-800">Circulo Seguro</h1>
+          </a>
+        </div>
+
+        <button class="md:hidden text-gray-700 focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <ul class="hidden md:flex space-x-6">
+          <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
+          <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
+          <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+          <li><a href="Index.html" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">Volver al inicio</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
   <main class="container mx-auto px-6 py-12">
     <!-- Breve descripcion de la App-->
     <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Descargar Círculo Seguro</h1>
@@ -16,11 +43,10 @@
     <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 text-center">
       <!--Boton con enlace de descarga-->
       <p class="mb-4">Descarga la versión para Windows:</p>
-      <a href="https://www.mediafire.com/file/z7rujsuluw2bvup/Circulo_seguro.7z/file" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Descargar para Windows</a>
+      <a id="btn-descargar" href="https://www.mediafire.com/file/z7rujsuluw2bvup/Circulo_seguro.7z/file" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Descargar para Windows</a>
       <p class="text-sm text-gray-600 mt-4">Si necesitas ayuda, contáctanos en Circulo_Seguro@hotmail.com</p>
     </div>
     <p class="text-center text-sm text-gray-600 mt-8">
-      <a href="Index.html" class="text-blue-600 hover:underline">Volver al inicio</a>
     </p>
   </main>
 </body>
