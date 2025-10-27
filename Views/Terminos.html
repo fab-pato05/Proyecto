@@ -6,18 +6,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Términos y Condiciones</title>
     <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-sans leading-relaxed">
 
     <!-- Navbar -->
-    <nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
-        <div class="flex space-x-4">
-            <a href="Index.html" class="text-blue-600 hover:underline">← Volver al Inicio</a>
-            <a href="Privacidad.html" class="text-blue-600 hover:underline">Política de Privacidad</a>
-        </div>
-    </nav>
+    <header>
+        <nav class="bg-white shadow-md">
+            <div class="bg-gray-100 px-6 py-3 flex items-center justify-between">
+                <div class="flex items-center">
+                    <a href="Contacto.html" class="flex items-center">
+                        <img src="img/LOGO_CS.jpg" alt="Logo" class="w-14 h-14 rounded-full mr-4">
+                        <h1 class="text-xl font-bold text-gray-800">Circulo Seguro</h1>
+                    </a>
+                </div>
+
+                <button class="md:hidden text-gray-700 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <ul class="hidden md:flex space-x-6">
+                    <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a>
+                    </li>
+                    <li><a href="Privacidad.html"
+                            class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
+                    <li><a href="Terminos.html"
+                            class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a>
+                    </li>
+                    <li><a href="Index.html" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">Volver al inicio</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
 
     <!-- Contenido -->
     <main class="max-w-4xl mx-auto px-6 py-10 bg-white shadow-lg rounded-xl mt-8">
@@ -73,29 +96,39 @@
 
             <div>
                 <h2 class="text-xl font-semibold text-gray-800">7. Terminación</h2>
-                <p>Podemos suspender o terminar tu acceso por violaciones a estos T&C...</p>
+                <p>El operador se reserva el derecho de terminar o suspender el acceso a la Plataforma en cualquier
+                    momento,
+                    sin previo aviso, por conducta que considere que viola estos T&C o es perjudicial para otros
+                    usuarios
+                    o para el operador de la Plataforma.</p>
             </div>
 
             <div>
-                <h2 class="text-xl font-semibold text-gray-800">8. Ley Aplicable</h2>
-                <p>Estos T&C se rigen por las leyes de El Salvador...</p>
+                <h2 class="text-xl font-semibold text-gray-800">8. Modificaciones a los Términos</h2>
+                <p>Nos reservamos el derecho de modificar estos T&C en cualquier momento. Las modificaciones serán
+                    efectivas
+                    una vez publicadas en la Plataforma. Es tu responsabilidad revisar periódicamente los T&C para
+                    estar
+                    informado sobre posibles cambios.</p>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-semibold text-gray-800">9. Ley Aplicable y Jurisdicción</h2>
+                <p>Estos T&C se rigen por las leyes de El Salvador. Cualquier disputa relacionada con estos T&C será
+                    sometida
+                    a la jurisdicción de los tribunales competentes de El Salvador.</p>
             </div>
         </section>
-
-        <!-- Contacto -->
-        <div class="mt-10 p-4 bg-blue-50 border-l-4 border-blue-600 rounded-md">
-            <p><strong>Contacto:</strong> Para preguntas, envía email a
-                <a href="mailto:tuemail@misitio.com" class="text-blue-600 hover:underline">Circulo_Seguro@hotmail.com</a>
-                o llama al 2254-0977.
-            </p>
-        </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-100 text-center py-6 mt-10 border-t">
-        <p class="text-sm text-gray-600">&copy; 2025 Circulo Seguro.com. Todos los derechos reservados. |
-            <a href="Privacidad.html" class="text-blue-600 hover:underline">Privacidad</a>
-        </p>
+    <footer class="bg-white shadow-inner mt-8">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <p class="text-center text-gray-500 text-sm">
+                © 2025 Circulo Seguro. Todos los derechos reservados.
+            </p>
+        </div>
     </footer>
 </body>
+
 </html>
