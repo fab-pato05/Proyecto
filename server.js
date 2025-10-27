@@ -203,7 +203,7 @@ app.post("/login", async (req, res) => {
         const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena);
 
         if (passwordValida) {
-            res.send("✅ Inicio de sesión exitoso");
+            res.send("/Views/cotizador.html");
         } else {
             res.send("❌ Contraseña incorrecta");
         }
