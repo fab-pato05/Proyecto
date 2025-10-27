@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recuperar contraseña</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white shadow-xl rounded-2xl w-full max-w-md p-8">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Recuperar Contraseña</h2>
+        <p class="text-center text-gray-500 mb-6 text-sm">
+            Ingresa tu correo y te enviaremos un enlace para recuperar tu cuenta.
+        </p>
+
+        <form>
+            <label class="block mb-2 text-gray-700 font-medium" for="email">Correo electrónico</label>
+            <input id="email" type="email" placeholder="ejemplo@correo.com"
+                class="w-full p-3 border border-gray-300 focus:border-green-600 focus:ring-2 focus:ring-green-300 outline-none rounded-lg mb-4"
+                required />
+
+            <button type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition duration-200">
+                Enviar enlace
+            </button>
+        </form>
+
+        <div class="text-center mt-6">
+            <a href="#" class="text-sm text-green-600 hover:underline">Volver a iniciar sesión</a>
+        </div>
+    </div>
+    <script src="/Views/Js/RestaurarCuenta.js"></script>
+</body>
+
+</html>

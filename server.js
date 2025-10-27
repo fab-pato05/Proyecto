@@ -87,7 +87,7 @@ function extraerFrameVideo(videoPath) {
 // Verificación completa (OCR con Tesseract + SHAP + Reconocimiento facial)
 app.post("/verificar-identidad", upload.fields([{ name: 'doc' }, { name: 'video' }]), async (req, res) => {
     try {
-        // Rev;isar si llegó el documento
+        // Revisar si llegó el documento
         if (!req.files['doc'] || req.files['doc'].length === 0) {
             return res.status(400).json({ exito: false, mensaje: "❌ Documento no enviado" });
         }
