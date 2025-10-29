@@ -142,10 +142,10 @@ import nodemailer from "nodemailer";
 
 app.post("/guardar-cotizacionForm", async (req, res) => {
     try {
-        const { usuario_id, monto_asegurar, cesion_beneficios, poliza } = req.body;
+        const { id, monto_asegurar, cesion_beneficios, poliza } = req.body;
 
         // 1️⃣ Obtener datos del usuario desde la tabla 'usuarios'
-        const usuarioRes = await pool.query("SELECT nombres, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]);
+        const usuarioRes = await pool.query("SELECT nombre, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]);
         if (usuarioRes.rows.length === 0) {
             return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
         }
@@ -155,14 +155,15 @@ app.post("/guardar-cotizacionForm", async (req, res) => {
         // 2️⃣ Guardar cotización
       const insertQuery = `
     INSERT INTO formulariocotizacion
-    (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
+    (id, nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
     RETURNING *;
 `;
 
 const values = [
-    usuario.nombres,
-    usuario.apellidos,
+    id,
+    usuario.nombre,
+    usuario.primerapellido,
     usuario.segundoApellido || "", // si no hay
     usuario.celular,
     usuario.correo,
