@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Borrador con Tailwind - Círculo Seguro</title>
+  <title>Círculo Seguro</title>
+  <link rel="icon" href="img/LOGO_CS.jpg" type="image/jpeg" sizes="32x32">
   
   <!-- CSS local -->
   <link rel="stylesheet" href="style.css">
@@ -33,6 +34,10 @@
           <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
           <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
           <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+<<<<<<< HEAD
+=======
+          <li><a id="btn-descargar" href="Descarga.html" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">Descargar Círculo Seguro</a></li>
+>>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
         </ul>
       </div>
     </nav>
@@ -120,7 +125,11 @@
             <li>✅ Asistencia en orientación nutricional</li>
             <li>✅ Asistencia en orientación psicológica</li>
           </ul>
+<<<<<<< HEAD
           <button onclick="window.location.href='/Views/VerificacionBio.htlm'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+=======
+           <button onclick="window.location.href='./Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+>>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
         </div>
       </div>
     </section>
@@ -219,6 +228,7 @@
   <script>
     // Feather Icons
     feather.replace();
+<<<<<<< HEAD
     // Año dinámico
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
@@ -226,6 +236,23 @@
   <!-- Main.js: esperar DOM cargado -->
   <script type="module">
     import "./Js/main.js";
+=======
+    
+    // Establecer año actual en el footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Ocultar y bloquear el botón de descarga cuando la página corre dentro de Electron
+    (function(){
+      const isElectron = navigator.userAgent.includes('Electron');
+      const btn = document.getElementById('btn-descargar');
+      if (isElectron && btn) {
+        btn.style.display = 'none';
+        btn.setAttribute('aria-hidden', 'true');
+        btn.setAttribute('tabindex', '-1');
+        btn.addEventListener('click', function(e){ e.preventDefault(); });
+      }
+    })();
+>>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
   </script>
 </body>
 </html>
