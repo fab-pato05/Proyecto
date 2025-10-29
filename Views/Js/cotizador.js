@@ -1,22 +1,39 @@
-document.getElementById("cotizacionForm").addEventListener("submit", function (e) {
+document.getElementById("cotizacionForm").addEventListener("submit", async function (e) {
     e.preventDefault();
-    const monto = parseFloat(this.monto.value);
+
+    // Validar monto
+    const monto = parseFloat(this.monto_asegurar.value);
     if (isNaN(monto) || monto < 10000) {
         alert("El monto a asegurar debe ser mayor a $10,000");
         return;
     }
 
-    // Aquí podrías enviar los datos a tu servidor o API
-    alert("Formulario enviado con éxito ✅");
-    this.reset();
-});
-        document.getElementById("cotizacionForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData.entries());
+    // Recolectar datos del formulario
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
 
-            localStorage.setItem("cotizacion", JSON.stringify(data));
+    // Guardar en localStorage por si se necesita luego
+    localStorage.setItem("cotizacion", JSON.stringify(data));
 
-            alert(`Has seleccionado la póliza: ${data.tipoPoliza}`);
-            window.location.href = "contratar.html"; // redirige a la siguiente página
+    try {
+        // Enviar datos al servidor
+        const response = await fetch("/guardar-cotizacionForm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
         });
+
+        if (!response.ok) throw new Error("Error al guardar la cotización");
+
+        const mensaje = await response.text();
+
+        alert(`✅ ${mensaje}`);
+        this.reset();
+
+        // Redirigir si todo salió bien
+        window.location.href = "contratar.html";
+    } catch (error) {
+        console.error("Error al enviar la cotización:", error);
+        alert("❌ No se logró guardar la cotización. Intenta nuevamente.");
+    }
+});

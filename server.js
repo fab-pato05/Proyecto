@@ -19,6 +19,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+
 // === Conexión PostgreSQL Neon ===
 const pool = new Pool({
     user: process.env.NEON_USER,
@@ -28,6 +29,10 @@ const pool = new Pool({
     port: process.env.NEON_PORT,
     ssl: { rejectUnauthorized: false }
 });
+// === PRUEBA DE CONEXIÓN ===
+pool.query("SELECT NOW()")
+  .then(res => console.log("Conexión correcta a la DB:", res.rows))
+  .catch(err => console.error("Error conexión a la DB:", err));
 
 // === Middlewares ===
 app.use(cors());
@@ -213,21 +218,77 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// Guardar cotización
+//Guardar cortizacion
 app.post("/guardar-cotizacionForm", async (req, res) => {
     try {
-        const { nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza } = req.body;
-        await pool.query(`
-            INSERT INTO FormularioCotizacion
-            (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-        `, [nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza]);
-        res.send("✅ Cotización guardada correctamente");
+        console.log("Datos recibidos:", req.body);
+
+        // Ajustar nombres según el HTML
+        const { 
+            nombres,
+            primerApellido,
+            segundoApellido,
+            celular,
+            correo,
+            monto,
+            cesion,
+            tipoPoliza
+        } = req.body;
+
+        // Validar que los campos obligatorios no estén vacíos
+        if (!nombres || !primerApellido || !celular || !correo || !monto || !cesion || !tipoPoliza) {
+            return res.status(400).send("❌ Faltan datos obligatorios");
+        }
+         // Convertir monto a número
+         const monto_asegurar = parseFloat(req.body.monto_asegurar);
+
+        // Generar código único
+        const codigoUnico = Math.random().toString(36).substring(2,10).toUpperCase();
+
+        // Guardar en la base de datos
+        const resultado = await pool.query(`
+            INSERT INTO formulariocotizacion
+            (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza, codigo_unico)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+            RETURNING id;
+        `, [nombres, primerApellido, segundoApellido, celular, correo, monto, tipoPoliza, codigo_unico]);
+
+        const idOrden = resultado.rows[0].id;
+
+        console.log("Cotización guardada con ID:", idOrden);
+
+        // Enviar correo
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            from: `"Cotización Seguros" <${process.env.EMAIL_USER}>`,
+            to: correo,
+            subject: "Tu código de cotización",
+            html: `<h2>Gracias por tu cotización</h2>
+                   <p>Hola <b>${nombres}</b>, hemos recibido tu solicitud.</p>
+                   <p>Tu número de orden es: <b>${idOrden}</b></p>
+                   <p>Tu código único para crear tu cuenta es: <b style="color:green">${codigoUnico}</b></p>
+                   <p>Este código será válido durante las próximas 24 horas.</p>
+                   <br>
+                   <a href="http://localhost:3000" style="background:#22c55e; color:white; padding:10px 15px; border-radius:8px; text-decoration:none;">Ir al inicio</a>`
+        });
+
+        // Enviar respuesta al frontend
+        res.send(`✅ Cotización guardada y correo enviado a ${correo}. Tu código es: ${codigoUnico}`);
+
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al guardar cotización");
+        console.error("Error al guardar cotización:", err);
+        res.status(500).send("❌ Error al guardar cotización");
     }
 });
+
+
 
 // Guardar contratación
 app.post("/guardar-contratacion", async (req, res) => {
