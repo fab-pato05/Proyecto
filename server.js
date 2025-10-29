@@ -155,8 +155,8 @@ app.post("/guardar-cotizacionForm", async (req, res) => {
         // 2️⃣ Guardar cotización
       const insertQuery = `
     INSERT INTO formulariocotizacion
-    (id, nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+    (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)  
     RETURNING *;
 `;
 

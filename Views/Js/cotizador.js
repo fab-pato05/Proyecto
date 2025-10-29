@@ -1,22 +1,33 @@
-document.getElementById("cotizacionForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    const monto = parseFloat(this.monto.value);
-    if (isNaN(monto) || monto < 10000) {
-        alert("El monto a asegurar debe ser mayor a $10,000");
-        return;
-    }
+const form = document.getElementById("/guardar-cotizacionForm");
 
-    // Aquí podrías enviar los datos a tu servidor o API
-    alert("Formulario enviado con éxito ✅");
-    this.reset();
-});
-        document.getElementById("cotizacionForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData.entries());
+form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Evita que se recargue la página
 
-            localStorage.setItem("cotizacion", JSON.stringify(data));
+    // Capturar todos los datos del formulario
+    const formData = new FormData(form);
+    const data = new URLSearchParams(formData);
 
-            alert(`Has seleccionado la póliza: ${data.tipoPoliza}`);
-            window.location.href = "contratar.html"; // redirige a la siguiente página
+    try {
+        const res = await fetch("http://localhost:3000/guardar-cotizacionForm", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+            
+
         });
+
+        const result = await res.json();
+        console.log(result);
+        if (result.ok) {
+            alert("✅ Cotización enviada correctamente");
+            form.reset(); // limpiar formulario
+        } else {
+            alert(result.message || "❌ Error al enviar cotización");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("❌ Error al conectar con el servidor");
+    }
+});
