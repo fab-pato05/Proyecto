@@ -34,6 +34,12 @@
           <li><a href="Contacto.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Contacto</a></li>
           <li><a href="Privacidad.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Privacidad</a></li>
           <li><a href="Terminos.html" class="text-gray-700 hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+<<<<<<< HEAD
+=======
+
+          <li><a id="btn-descargar" href="Descarga.html" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">Descargar Círculo Seguro</a></li>
+
+>>>>>>> 4b2d6dc35c677efae70a0adaf4381b609a559c8c
         </ul>
       </div>
     </nav>
@@ -203,7 +209,7 @@
   
   <p class="text-center text-sm text-gray-600 mt-4">
   ¿Ya tienes una cuenta?
-  <a href="login.html" class="text-blue-600 hover:underline font-semibold">
+  <a href="Login.html" class="text-blue-600 hover:underline font-semibold">
     Inicia sesión aquí
   </a>
 </p>
@@ -223,11 +229,28 @@
     // Año dinámico
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
+
 <script src="https://unpkg.com/feather-icons"></script>
   <!-- Main.js: esperar DOM cargado -->
   <script type="module">
     import "./Js/main.js";
   </script>
+    
+    // Establecer año actual en el footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Ocultar y bloquear el botón de descarga cuando la página corre dentro de Electron
+    (function(){
+      const isElectron = navigator.userAgent.includes('Electron');
+      const btn = document.getElementById('btn-descargar');
+      if (isElectron && btn) {
+        btn.style.display = 'none';
+        btn.setAttribute('aria-hidden', 'true');
+        btn.setAttribute('tabindex', '-1');
+        btn.addEventListener('click', function(e){ e.preventDefault(); });
+      }
+    })();
+    </script>
 </body>
 </html>
 
