@@ -138,20 +138,75 @@ app.post("/login", async (req, res) => {
 });
 
 // Guardar cotización
+import nodemailer from "nodemailer";
+
 app.post("/guardar-cotizacionForm", async (req, res) => {
     try {
-        const { nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza } = req.body;
-        await pool.query(`
-            INSERT INTO FormularioCotizacion
-            (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-        `, [nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza]);
-        res.send("✅ Cotización guardada correctamente");
+        const { usuario_id, monto_asegurar, cesion_beneficios, poliza } = req.body;
+
+        // 1️⃣ Obtener datos del usuario desde la tabla 'usuarios'
+        const usuarioRes = await pool.query("SELECT nombres, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]);
+        if (usuarioRes.rows.length === 0) {
+            return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
+        }
+
+        const usuario = usuarioRes.rows[0];
+
+        // 2️⃣ Guardar cotización
+      const insertQuery = `
+    INSERT INTO formulariocotizacion
+    (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+    RETURNING *;
+`;
+
+const values = [
+    usuario.nombres,
+    usuario.apellidos,
+    usuario.segundoApellido || "", // si no hay
+    usuario.celular,
+    usuario.correo,
+    monto_asegurar,
+    cesion_beneficios,
+    poliza
+];
+
+const result = await pool.query(insertQuery, values);
+console.log("Cotización guardada:", result.rows[0]);
+
+
+        // 3️⃣ Enviar correo al usuario
+        const transporter = nodemailer.createTransport({
+            service: "gmail", // o tu proveedor
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: usuario.correo,
+            subject: "Cotización Registrada",
+            html: `
+                <h2>Hola ${usuario.nombres},</h2>
+                <p>Tu cotización ha sido registrada correctamente:</p>
+                <ul>
+                    <li>Monto a asegurar: $${monto_asegurar}</li>
+                    <li>Cesión de beneficios: ${cesion_beneficios}</li>
+                    <li>Póliza: ${poliza}</li>
+                </ul>
+            `
+        });
+
+        res.json({ ok: true, message: "Cotización guardada y correo enviado" });
+
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error al guardar cotización");
+        res.status(500).json({ ok: false, message: "Error al guardar cotización o enviar correo" });
     }
 });
+
 
 // Guardar contratación
 app.post("/guardar-contratacion", async (req, res) => {
@@ -244,4 +299,6 @@ app.post("/verificar-identidad", upload.fields([{ name: 'doc' }, { name: 'video'
 
 // Iniciar servidor
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
+
+
 
