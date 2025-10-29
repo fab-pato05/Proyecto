@@ -25,7 +25,6 @@ import crypto from "crypto";
 
 const { Pool } = pkg;
 dotenv.config();
-<<<<<<< HEAD
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -80,13 +79,6 @@ app.get("/", (req, res) => {
 });
 
 // === Postgres (Neon) ===
-=======
-
-const app = express();
-const PORT = 3000;
-
-// === Conexión PostgreSQL ===
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
 const pool = new Pool({
     user: process.env.NEON_USER,
     host: process.env.NEON_HOST,
@@ -96,7 +88,6 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-<<<<<<< HEAD
 // === AWS Rekognition client ===
 const rekClient = new RekognitionClient({ region: process.env.AWS_REGION });
 
@@ -110,29 +101,14 @@ const transporter = nodemailer.createTransport({
         pass: process.env.SMTP_PASS
     }
 });
-=======
-// Probar conexión al iniciar servidor
-pool.connect()
-    .then(client => {
-        console.log("✅ Conexión a PostgreSQL OK");
-        client.release();
-    })
-    .catch(err => console.error("❌ Error al conectar a PostgreSQL:", err));
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
 
 // === Middlewares ===
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-<<<<<<< HEAD
 app.use(helmet());
 app.set('trust proxy', 1);
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
-=======
-app.use(express.static(path.join(process.cwd(), "Views")));
-app.use("/models", express.static(path.join(process.cwd(), "models")));
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
 
 app.use(express.static(path.join(process.cwd(), "Views")));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -160,7 +136,6 @@ const upload = multer({
     }
 });
 
-<<<<<<< HEAD
 // === Utilidades ===
 function safeUnlink(p) {
     try { if (p && fs.existsSync(p)) fs.unlinkSync(p); } catch (e) { /* ignore */ }
@@ -169,19 +144,6 @@ function safeUnlink(p) {
 function nowISO() { return new Date().toISOString(); }
 
 // Robust frame extractor (returns Buffer)
-=======
-// === Funciones auxiliares ===
-async function extraerRostroDocumento(docPath) {
-    const image = sharp(docPath);
-    const metadata = await image.metadata();
-    const width = Math.floor(metadata.width * 0.3);
-    const height = Math.floor(metadata.height * 0.5);
-    const left = Math.floor(metadata.width * 0.35);
-    const top = Math.floor(metadata.height * 0.2);
-    return await image.extract({ left, top, width, height }).toBuffer();
-}
-
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
 function extraerFrameVideo(videoPath) {
     return new Promise((resolve, reject) => {
         const tempPng = path.join(path.dirname(videoPath), `${uuidv4()}.png`);
@@ -201,7 +163,6 @@ function extraerFrameVideo(videoPath) {
     });
 }
 
-<<<<<<< HEAD
 // Extraer rostro del documento (crop heurístico)
 async function extraerRostroDocumento(docPath) {
     const image = sharp(docPath);
@@ -497,24 +458,12 @@ app.post("/verificar-identidad", upload.fields([{ name: 'doc' }, { name: 'video'
 });
 
 // Guardar registro de usuario (ejemplo anterior)
-=======
-// === Endpoints ===
-
-// Página principal
-app.get("/", (req, res) => res.sendFile(path.join(process.cwd(), "Views/Index.html")));
-
-// Servir formulario de registro
-app.get("/CrearCuenta.html", (req, res) => res.sendFile(path.join(process.cwd(), "Views/CrearCuenta.html")));
-
-// Registrar usuario
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
 app.post("/guardar-registerForm", async (req, res) => {
     try {
         const { nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, contrasena } = req.body;
 
         const hashedPassword = await bcrypt.hash(contrasena, 10);
         const query = `
-<<<<<<< HEAD
         INSERT INTO usuarios
         (nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, contrasena)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id;
@@ -522,17 +471,6 @@ app.post("/guardar-registerForm", async (req, res) => {
         const values = [nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, hashedPassword];
         const r = await pool.query(query, values);
         res.status(200).json({ ok: true, id: r.rows[0].id });
-=======
-            INSERT INTO usuarios
-            (nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numerodocumento, contrasena)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-        `;
-        const values = [nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, hashedPassword];
-
-        await pool.query(query, values);
-        res.status(200).json({ ok: true });
-
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
     } catch (error) {
         console.error("❌ Error al registrar usuario:", error);
         res.status(500).json({ ok: false, message: "Error al registrar usuario" });
@@ -549,24 +487,18 @@ app.post("/login", async (req, res) => {
         const usuario = resultado.rows[0];
         const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena);
 
-<<<<<<< HEAD
 
         if (passwordValida) {
             res.send("/Views/cotizador.html");
         } else {
             res.send("❌ Contraseña incorrecta");
         }
-=======
-        if (passwordValida) res.send("✅ Inicio de sesión exitoso");
-        else res.send("❌ Contraseña incorrecta");
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
     } catch (error) {
         console.error(error);
         res.status(500).send("Error en el inicio de sesión");
     }
 });
 
-<<<<<<< HEAD
 
 // ===== RUTA PARA GUARDAR COTIZACIÓN =====
 app.post("/guardar-cotizacionForm", async (req, res) => {
@@ -604,76 +536,6 @@ app.post("/guardar-cotizacionForm", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("❌ Error al guardar cotización");
-=======
-// Guardar cotización
-import nodemailer from "nodemailer";
-
-app.post("/guardar-cotizacionForm", async (req, res) => {
-    try {
-        const { id, monto_asegurar, cesion_beneficios, poliza } = req.body;
-
-        // 1️⃣ Obtener datos del usuario desde la tabla 'usuarios'
-        const usuarioRes = await pool.query("SELECT nombre, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]);
-        if (usuarioRes.rows.length === 0) {
-            return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
-        }
-
-        const usuario = usuarioRes.rows[0];
-
-        // 2️⃣ Guardar cotización
-      const insertQuery = `
-    INSERT INTO formulariocotizacion
-    (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)  
-    RETURNING *;
-`;
-
-const values = [
-    id,
-    usuario.nombre,
-    usuario.primerapellido,
-    usuario.segundoApellido || "", // si no hay
-    usuario.celular,
-    usuario.correo,
-    monto_asegurar,
-    cesion_beneficios,
-    poliza
-];
-
-const result = await pool.query(insertQuery, values);
-console.log("Cotización guardada:", result.rows[0]);
-
-
-        // 3️⃣ Enviar correo al usuario
-        const transporter = nodemailer.createTransport({
-            service: "gmail", // o tu proveedor
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
-
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: usuario.correo,
-            subject: "Cotización Registrada",
-            html: `
-                <h2>Hola ${usuario.nombres},</h2>
-                <p>Tu cotización ha sido registrada correctamente:</p>
-                <ul>
-                    <li>Monto a asegurar: $${monto_asegurar}</li>
-                    <li>Cesión de beneficios: ${cesion_beneficios}</li>
-                    <li>Póliza: ${poliza}</li>
-                </ul>
-            `
-        });
-
-        res.json({ ok: true, message: "Cotización guardada y correo enviado" });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ ok: false, message: "Error al guardar cotización o enviar correo" });
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
     }
 });
 
@@ -695,82 +557,9 @@ app.post("/guardar-contratacion", async (req, res) => {
     }
 });
 
-<<<<<<< HEAD
 
 // Página principal
 app.use(express.static(path.join(process.cwd(), "Views")));
-=======
-// Verificación de identidad (OCR + AWS Rekognition)
-app.post("/verificar-identidad", upload.fields([{ name: 'doc' }, { name: 'video' }]), async (req, res) => {
-    try {
-        if (!req.files['doc'] || req.files['doc'].length === 0) {
-            return res.status(400).json({ exito: false, mensaje: "❌ Documento no enviado" });
-        }
-
-        const docPath = req.files['doc'][0].path;
-
-        let ocrText = "";
-        let shapExplanation = "Confianza baja (imagen no clara).";
-
-        try {
-            const worker = await createWorker('spa');
-            const { data: { text } } = await worker.recognize(docPath);
-            await worker.terminate();
-            ocrText = text.trim();
-
-            shapExplanation = await new Promise((resolve) => {
-                const pythonProcess = spawn('python', ['shap_explain.py', ocrText]);
-                let output = "";
-                pythonProcess.stdout.on('data', (data) => output += data.toString());
-                pythonProcess.on('close', (code) => {
-                    if (code !== 0) resolve("Explicación no disponible.");
-                    else resolve(output.trim());
-                });
-                pythonProcess.on('error', () => resolve("Explicación no disponible."));
-            });
-
-        } catch (err) {
-            console.error("Error OCR con Tesseract/SHAP:", err);
-            ocrText = "Texto no legible";
-            shapExplanation = "Imagen no procesable.";
-        }
-
-        const docUrl = `/uploads/${req.files['doc'][0].filename}`;
-        let rostroCoincide = false;
-
-        if (req.files['video'] && req.files['video'][0]) {
-            const videoPath = req.files['video'][0].path;
-            const frameSelfie = await extraerFrameVideo(videoPath);
-            const rostroDoc = await extraerRostroDocumento(docPath);
-
-            try {
-                const compareCmd = new CompareFacesCommand({
-                    SourceImage: { Bytes: frameSelfie },
-                    TargetImage: { Bytes: rostroDoc },
-                    SimilarityThreshold: 85
-                });
-                const compareRes = await rekClient.send(compareCmd);
-                rostroCoincide = compareRes.FaceMatches && compareRes.FaceMatches.length > 0;
-            } catch (err) {
-                console.error("Error comparación facial:", err);
-            }
-        }
-
-        const ocrSummary = ocrText.length > 50 ? ocrText.substring(0, 50) + "..." : ocrText;
-
-        if (req.files['video'] && req.files['video'][0]) {
-            if (rostroCoincide) res.json({ exito: true, mensaje: "✅ Documento válido y rostro coincide", ocr_resumen: ocrSummary, explicacion_ia: shapExplanation, vista_previa: docUrl });
-            else res.json({ exito: false, mensaje: "❌ Rostro no coincide con documento", ocr_resumen: ocrSummary, explicacion_ia: shapExplanation, vista_previa: docUrl });
-        } else {
-            res.json({ exito: true, mensaje: "✅ Documento recibido (sin verificación facial)", ocr_resumen: ocrSummary, explicacion_ia: shapExplanation, vista_previa: docUrl });
-        }
-
-    } catch (err) {
-        console.error("Error endpoint verificación:", err);
-        res.status(500).json({ exito: false, mensaje: "❌ Error durante la verificación" });
-    }
-});
->>>>>>> b61c6a66f50d1a1e91f68a974f67c3513384d946
 
 // Iniciar servidor
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
