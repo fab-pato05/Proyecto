@@ -175,15 +175,15 @@ app.post("/verificar-identidad", upload.fields([{ name: 'doc' }, { name: 'video'
 // Registro usuario
 app.post("/guardar-registerForm", async (req, res) => {
     try {
-        const { nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, contrasena } = req.body;
+        const { nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, contrasena } = req.body;
         const hashedPassword = await bcrypt.hash(contrasena, 10);
 
         const query = `
             INSERT INTO usuarios
-            (nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, contrasena)
+            (nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, contrasena)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         `;
-        const values = [nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, hashedPassword];
+        const values = [nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, hashedPassword];
         await pool.query(query, values);
         res.status(200).json({ ok: true });
     } catch (error) {
