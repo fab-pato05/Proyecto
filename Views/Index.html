@@ -221,11 +221,18 @@
   </footer>
 
   <!-- Scripts -->
+  <script>
+    // Feather Icons
+    feather.replace();
+    // Año dinámico
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 
 <script src="https://unpkg.com/feather-icons"></script>
   <!-- Main.js: esperar DOM cargado -->
   <script type="module">
     import "./Js/main.js";
+  </script>
     
     // Establecer año actual en el footer
     document.getElementById('year').textContent = new Date().getFullYear();

@@ -71,28 +71,52 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/js", express.static(path.join(process.cwd(), "Views/Js")));
 app.use("/img", express.static(path.join(process.cwd(), "Views/img")));
 app.use("/css", express.static(path.join(process.cwd(), "Views/css")));
+
+// ===== Rutas =====
+app.get("/", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "Views/Index.html"));
+});
+
+// === Postgres (Neon) ===
 app.use("/models", express.static(path.join(process.cwd(), "models")));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 //CONEXCION A NEON 
 const pool = new Pool({
-    user: process.env.NEON_USER,
-    host: process.env.NEON_HOST,
-    database: process.env.NEON_DATABASE,
-    password: process.env.NEON_PASSWORD,
-    port: process.env.NEON_PORT,
-    ssl: { rejectUnauthorized: false }
+  user: process.env.NEON_USER,
+  host: process.env.NEON_HOST,
+  database: process.env.NEON_DATABASE,
+  password: process.env.NEON_PASSWORD,
+  port: Number(process.env.NEON_PORT || 5432),
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
-// === Middlewares ===
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(process.cwd(), "Views")));
-app.use("/models", express.static(path.join(process.cwd(), "models")));
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads"))); // ✅ agregado para servir uploads
 
-// === Multer para uploads ===
+// probar conexión al iniciar
+pool.connect()
+    .then(client => { client.release(); console.log("✅ Conexión a PostgreSQL OK"); })
+    .catch(err => console.error("❌ Error al conectar a PostgreSQL:", err));
+
+// === AWS Rekognition client (si está configurado) ===
+let rekClient = null;
+if (process.env.AWS_REGION) rekClient = new RekognitionClient({ region: process.env.AWS_REGION });
+
+// === Nodemailer transporter (si está configurado) ===
+let transporter = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+    transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: false,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+    });
+} else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS } });
+}
+
+// ===== Multer storage + limits + fileFilter =====
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = path.join(process.cwd(), "uploads");
@@ -115,12 +139,14 @@ const upload = multer({
     }
 });
 
+// === Utilidades ===
 // ===== Utilidades =====
 function safeUnlink(p) {
     try { if (p && fs.existsSync(p)) fs.unlinkSync(p); } catch (e) { /* ignore */ }
 }
 function nowISO() { return new Date().toISOString(); }
 
+// Robust frame extractor (returns Buffer)
 // Extraer frame de video (devuelve Buffer)
 function extraerFrameVideo(videoPath) {
     return new Promise((resolve, reject) => {
@@ -141,6 +167,7 @@ function extraerFrameVideo(videoPath) {
     });
 }
 
+// Extraer rostro del documento (crop heurístico)
 // Extraer rostro del documento (heurística con sharp)
 async function extraerRostroDocumento(docPath) {
     const image = sharp(docPath);
@@ -405,6 +432,91 @@ app.post('/verificar-identidad', upload.fields([{ name: 'doc' }, { name: 'video'
     }
 });
 
+// Guardar registro de usuario (ejemplo anterior)
+app.post("/guardar-registerForm", async (req, res) => {
+    try {
+        const { nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, contrasena } = req.body;
+
+        const hashedPassword = await bcrypt.hash(contrasena, 10);
+        const query = `
+        INSERT INTO usuarios
+        (nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, contrasena)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id;
+    `;
+        const values = [nombres, apellidos, sexo, correo, celular, fechaNacimiento, tipoDocumento, numeroDocumento, hashedPassword];
+        const r = await pool.query(query, values);
+        res.status(200).json({ ok: true, id: r.rows[0].id });
+    } catch (error) {
+        console.error("❌ Error al registrar usuario:", error);
+        res.status(500).json({ ok: false, message: "Error al registrar usuario" });
+    }
+});
+// Inicio de sesión
+app.post("/login", async (req, res) => {
+    try {
+        const { correo, contrasena } = req.body;
+        const resultado = await pool.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
+        if (resultado.rows.length === 0) return res.status(404).send("❌ Usuario no encontrado");
+
+
+        const usuario = resultado.rows[0];
+        const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena);
+
+
+        if (passwordValida) {
+            res.send("/Views/cotizador.html");
+        } else {
+            res.send("❌ Contraseña incorrecta");
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error en el inicio de sesión");
+    }
+});
+
+
+// ===== RUTA PARA GUARDAR COTIZACIÓN =====
+app.post("/guardar-cotizacionForm", async (req, res) => {
+    try {
+        const {
+            nombre,
+            primerapellido,
+            segundoapellido,
+            celular,
+            correo,
+            monto_asegurar,
+            cesion_beneficios,
+            poliza,
+        } = req.body;
+
+        await pool.query(
+            `
+        INSERT INTO FormularioCotizacion
+        (nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      `,
+            [
+                nombre,
+                primerapellido,
+                segundoapellido,
+                celular,
+                correo,
+                monto_asegurar,
+                cesion_beneficios,
+                poliza,
+            ]
+        );
+
+        res.send("✅ Cotización guardada correctamente en la base de datos");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("❌ Error al guardar cotización");
+    }
+});
+
+
+// Guardar contratación
+app.post("/guardar-contratacion", async (req, res) => {
 // Admin: listar verificaciones (middleware simple)
 function checkAdmin(req, res, next) {
     const header = req.headers['x-admin-token'] || req.headers.authorization;
@@ -413,6 +525,23 @@ function checkAdmin(req, res, next) {
 }
 app.get('/admin/verificaciones', checkAdmin, async (req, res) => {
     try {
+        const { usuario_id, nombre_completo, correo, celular } = req.body;
+        const usuarioExiste = await pool.query("SELECT * FROM usuarios WHERE id=$1", [usuario_id]);
+        if (usuarioExiste.rows.length === 0) return res.send("❌ Usuario no existe");
+        await pool.query(`
+            INSERT INTO contrataciones (usuario_id,nombre_completo,correo,celular)
+            VALUES($1,$2,$3,$4)
+        `, [usuario_id, nombre_completo, correo, celular]);
+        res.send("✅ Contratación registrada correctamente");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al registrar contratación");
+    }
+});
+
+
+// Página principal
+app.use(express.static(path.join(process.cwd(), "Views")));
         const { rows } = await pool.query(`SELECT v.*, u.nombres, u.apellidos, u.correo FROM verificacion_biometrica v LEFT JOIN usuarios u ON u.id = v.user_id ORDER BY v.created_at DESC LIMIT 500;`);
         res.json(rows);
     } catch (err) { console.error(err); res.status(500).json({ ok: false }); }
