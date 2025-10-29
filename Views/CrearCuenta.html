@@ -64,7 +64,7 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Fecha de nacimiento *</label>
-          <input name="fechaNacimiento" type="date" required
+          <input name="fechanacimiento" type="date" required
             class="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-300 p-2" />
         </div>
       </div>
@@ -72,7 +72,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Tipo de documento *</label>
-          <select name="tipoDocumento"
+          <select name="tipodocumento"
             class="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-300 p-2">
             <option value="dui">DUI</option>
             <option value="pasaporte">Pasaporte</option>
@@ -101,7 +101,7 @@
 
       <div class="flex items-center justify-between mt-6">
         <!-- Botón submit sin onclick -->
-        <button type="submit"
+        <button   window.location.href = "/Views/cotizador.html"; 
           class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700">
           Crear cuenta
         </button>
@@ -112,6 +112,7 @@
     <!-- Contenedor para mostrar mensajes -->
     <div id="mensaje" style="margin-top:10px; color: green; font-weight: bold;"></div>
   </main>
+
   <script>
 const form = document.getElementById("registerForm");
 const mensaje = document.getElementById("mensaje");
@@ -136,7 +137,7 @@ form.addEventListener("submit", async (e) => {
 
             // Esperar 2 segundos y redirigir
             setTimeout(() => {
-                window.location.href = "/cotizador.htlm";
+                window.location.href = "/cotizador.html";
             }, 2000);
         } else {
             mensaje.style.color = "red";
