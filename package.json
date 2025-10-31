@@ -4,7 +4,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.914.0",
@@ -25,5 +26,16 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fab-pato05/Proyecto.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fab-pato05/Proyecto/issues"
+  },
+  "homepage": "https://github.com/fab-pato05/Proyecto#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
   "description": ""
 }

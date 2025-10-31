@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Contratar Seguro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="js/contratar.js"></script>
+  <meta charset="UTF-8">
+  <title>Contratar Seguro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 flex justify-center items-center min-h-screen">
-    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-2 text-center">Contrata tu Seguro</h2>
-        <p id="resumen" class="text-center text-gray-600 mb-6"></p>
-        <form id="contratacion" class="space-y-4" action="/guardar-contratacion" method="POST">
-            <input type="text" id="nombre" placeholder="Nombre completo" required class="w-full p-2 border rounded">
-            <input type="email" id="email" placeholder="Correo electrónico" required class="w-full p-2 border rounded">
-            <input type="tel" id="telefono" placeholder="Teléfono" required class="w-full p-2 border rounded">
-            <button type="submit"
-                class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Continuar</button>
-        </form>
-    </div>
-    <script src="Js/contratar.js"></script>
+
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
+    <h2 class="text-2xl font-bold mb-4 text-green-700">¡Gracias por tu solicitud!</h2>
+
+    <p class="text-gray-700 mb-4">
+      Tu cotización será enviada al correo electrónico que registraste.
+    </p>
+
+    <p class="text-gray-700 mb-4">
+      Recibirás un <strong>número de orden de cotizante</strong>, el cual deberás usar para crear tu cuenta.
+    </p>
+
+    <p class="text-gray-700 mb-6">
+      Este código tendrá una <strong>vigencia de 24 horas</strong>.
+    </p>
+
+    <button onclick="window.location.href='Index.html'" 
+      class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+      Ir al Inicio
+    </button>
+  </div>
+
 </body>
 </html>

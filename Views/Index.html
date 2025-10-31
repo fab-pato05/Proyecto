@@ -83,7 +83,7 @@
             <li>❌ Asistencia en orientación nutricional</li>
             <li>❌ Asistencia en orientación psicológica</li>
           </ul>
-          <button onclick="window.location.href='./Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+          <button onclick="window.location.href='./cotizador.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
         </div>
 
         <!-- Tarjeta 2: PLAN VIDA PERSONAL (destacada) -->
@@ -104,7 +104,7 @@
             <li>✅ Asistencia en orientación nutricional</li>
             <li>✅ Asistencia en orientación psicológica</li>
           </ul>
-          <button  class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+          <button onclick="window.location.href='./Login.html'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
         </div>
 
         <!-- Tarjeta 3: VIDA MÚLTIPLE -->
@@ -124,7 +124,7 @@
             <li>✅ Asistencia en orientación nutricional</li>
             <li>✅ Asistencia en orientación psicológica</li>
           </ul>
-          <button onclick="window.location.href='/Views/VerificacionBio.htlm'" class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
+          <button class="mt-6 bg-blue-600 text-white font-bold py-3 rounded-full hover:bg-blue-700 transition">COTIZA</button>
         </div>
       </div>
     </section>
@@ -160,16 +160,17 @@
       <p class="mt-2 text-gray-600 text-sm">Puedes ceder los beneficios de tu seguro para un crédito bancario.</p>
     </div>
 
-    <!-- Beneficio 4 -->
-    <div>
-      <div class="w-16 h-16 mx-auto bg-sky-500 rounded-full flex items-center justify-center text-white">
-        <i data-feather="calendar" class="w-8 h-8"></i>
+        <!-- Beneficio 4 -->
+        <div>
+          <div class="w-16 h-16 mx-auto bg-sky-500 rounded-full flex items-center justify-center text-white">
+            <i data-feather="calendar" class="w-8 h-8"></i>
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-gray-900">Tiempo</h3>
+          <p class="mt-2 text-gray-600 text-sm">Eliges el tiempo de cobertura que necesitas.</p>
+        </div>
       </div>
-      <h3 class="mt-4 text-lg font-semibold text-gray-900">Tiempo</h3>
-      <p class="mt-2 text-gray-600 text-sm">Eliges el tiempo de cobertura que necesitas.</p>
-    </div>
-  </div>
-</section>
+    </section>
+    
 
     <!-- Sección Misión y Visión -->
     <section class="grid md:grid-cols-2 gap-8 mb-12">
@@ -220,11 +221,18 @@
   </footer>
 
   <!-- Scripts -->
+  <script>
+    // Feather Icons
+    feather.replace();
+    // Año dinámico
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 
 <script src="https://unpkg.com/feather-icons"></script>
   <!-- Main.js: esperar DOM cargado -->
   <script type="module">
     import "./Js/main.js";
+  </script>
     
     // Establecer año actual en el footer
     document.getElementById('year').textContent = new Date().getFullYear();
