@@ -23,8 +23,10 @@ import crypto from "crypto";
 const { Pool } = pkg;
 dotenv.config();
 
+
 // ===== CONFIG =====
 const app = express();
+app.use(express.static(path.join(process.cwd(), "Views")));
 const PORT = Number(process.env.PORT || 3000);
 
 // === ENCRIPTACIÓN AES-256 ===
@@ -76,14 +78,14 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 //CONEXCION A NEON 
 const pool = new Pool({
-  user: process.env.NEON_USER,
-  host: process.env.NEON_HOST,
-  database: process.env.NEON_DATABASE,
-  password: process.env.NEON_PASSWORD,
-  port: Number(process.env.NEON_PORT || 5432),
-  ssl: {
-    rejectUnauthorized: false,
-  },
+    user: process.env.NEON_USER,
+    host: process.env.NEON_HOST,
+    database: process.env.NEON_DATABASE,
+    password: process.env.NEON_PASSWORD,
+    port: Number(process.env.NEON_PORT || 5432),
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 
