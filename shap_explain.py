@@ -9,7 +9,7 @@ confidence = dummy_model(text)
 
 #explicacion corta con shap 
 if len(text) > 0: 
-    explanation = f"Confianza: {confidence:.1f}/1.0 (basodo en la longuitud)."
+    explanation = f"Confianza: {confidence:.1f}/1.0 (basado en la longuitud)."
 else: 
     explanation = "texto no detectado"
     print(explanation)

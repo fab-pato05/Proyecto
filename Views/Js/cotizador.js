@@ -5,8 +5,8 @@ document.getElementById("cotizacionForm").addEventListener("submit", async funct
     const data = Object.fromEntries(formData.entries());
     const monto = parseFloat(data.monto_asegurar);
 
-    if (isNaN(monto) || monto < 10000) {
-        alert("El monto a asegurar debe ser mayor a $10,000");
+    if (isNaN(monto) || monto > 10000) {
+        alert("El monto a asegurar debe ser mayor a $10000");
         return;
     }
 

@@ -1,13 +1,3 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // TODO: todo tu código de eventos y manipulación del DOM
-  const captureBtn = document.getElementById("captureBtn");
-  if (captureBtn) {
-    captureBtn.addEventListener("click", () => {
-      console.log("Botón selfie clickeado");
-    });
-  }
-});
-
 // Js/main.js  (cargar como <script type="module">)
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
@@ -39,6 +29,9 @@ function mostrarMensajeUsuario(texto, tipo = "info") {
   if (mensajeUsuario) {
     mensajeUsuario.textContent = texto;
     mensajeUsuario.className = tipo === "error" ? "text-sm text-red-600 mt-3" : "text-sm text-gray-700 mt-3";
+    mensajeUsuario.style.transition = "color 0.4s ease";
+    mensajeUsuario.style.color = tipo === "error" ? "#dc2626" : "#2563eb";
+    mensajeUsuario.style.fontWeight = "600";
   } else console.error("mensajeUsuario no encontrado");
 }
 
@@ -94,7 +87,7 @@ function stopRecording() {
 docInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (!["image/jpeg","image/png"].includes(file.type) || file.size > 6*1024*1024) {
+  if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 6 * 1024 * 1024) {
     mostrarMensajeUsuario("Archivo no válido. Usa JPG/PNG menores a 6MB.", "error");
     docStatus.textContent = "";
     documentoValido = false;
@@ -282,6 +275,20 @@ captureBtn.addEventListener("click", () => {
   habilitarEnvio();
 });
 
+// Guía inicial para que usuario antes de iniciar la verificación
+async function mostrarGuiaUsuario() {
+  const pasos = [
+    "Asegúrate de tener buena iluminación",
+    "Mira directamente a la cámara",
+    "Cuando estés listo, presiona 'Tomar Selfie'",
+    "Luego sigue las instrucciones en pantalla"
+  ];
+  for (let i = 0; i < pasos.length; i++) {
+    mostrarMensajeUsuario("📢 " + pasos[i]);
+    await new Promise(r => setTimeout(r, 3500)); // 3.5 s entre los pasos
+  }
+}
+
 // Orquesta completa: generar instrucciones, grabar, esperar acciones y enviar al backend
 async function iniciarFlujoVerificacion() {
   if (!documentoValido) { mostrarMensajeUsuario("Sube primero tu documento.", "error"); return; }
@@ -318,8 +325,12 @@ async function enviarVerificacion(videoBlob) {
     const data = await resp.json();
     console.log("Respuesta verificación:", data);
     if (data.exito) {
-      mostrarMensajeUsuario("✅ Verificación completada: " + (data.mensaje || "Éxito"));
-      docStatus.textContent = `Resultado: ${data.mensaje}`;
+      let mensajeFinal = "✅ Verificación completada correctamente.";
+      if (data.tipo_documento) {
+        mensajeFinal += ` Tipo detectado: ${data.tipo_documento}`;
+      }
+      mostrarMensajeUsuario(mensajeFinal);
+      docStatus.textContent = `Resultado: ${data.mensaje || data.tipo_documento || "Éxito"}`;
       docStatus.className = "text-sm text-green-600 mt-1";
     } else {
       mostrarMensajeUsuario("❌ " + (data.mensaje || "Fallo en verificación"), "error");
@@ -327,7 +338,7 @@ async function enviarVerificacion(videoBlob) {
       docStatus.className = "text-sm text-red-600 mt-1";
     }
 
-    // enviar registro de intento adicional
+    // enviar registro de intento adicional (si tienes endpoint)
     const intento = {
       user_id: window.currentUserId || null,
       resultado: data.exito ? "éxito" : "fallo",
@@ -336,13 +347,14 @@ async function enviarVerificacion(videoBlob) {
       acciones: accionesRegistro,
       device: deviceInfo()
     };
+    // Asumiendo que tienes un endpoint /registro-intento, si no, comenta esto
     await fetch("http://localhost:3000/registro-intento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(intento)
     });
   } catch (err) {
-    console.error("Error enviar verificación:", err);
+    console.error("Error enviar verificación:", err);
     mostrarMensajeUsuario("Error al enviar la verificación", "error");
   }
 }
@@ -359,8 +371,8 @@ submitBtn.addEventListener("click", async (e) => {
 // auto iniciar al cargar
 window.addEventListener("load", async () => {
   await iniciarMediaPipe();
+  await mostrarGuiaUsuario();
   generarInstruccionesAleatorias();
   registrarAccionSolicitada(instrucciones[0]);
 });
-
 

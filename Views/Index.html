@@ -226,16 +226,6 @@
     feather.replace();
     // Año dinámico
     document.getElementById("year").textContent = new Date().getFullYear();
-  </script>
-
-<script src="https://unpkg.com/feather-icons"></script>
-  <!-- Main.js: esperar DOM cargado -->
-  <script type="module">
-    import "./Js/main.js";
-  </script>
-    
-    // Establecer año actual en el footer
-    document.getElementById('year').textContent = new Date().getFullYear();
 
     // Ocultar y bloquear el botón de descarga cuando la página corre dentro de Electron
     (function(){
@@ -248,7 +238,15 @@
         btn.addEventListener('click', function(e){ e.preventDefault(); });
       }
     })();
-    </script>
+
+  </script>
+
+<script src="https://unpkg.com/feather-icons"></script>
+  <!-- Main.js: esperar DOM cargado -->
+  <script type="module">
+    import "./Js/main.js";
+</script>
+
 </body>
 </html>
 
