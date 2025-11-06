@@ -106,15 +106,6 @@ docInput.addEventListener("change", (e) => {
   habilitarEnvio();
 });
 
-// habilitar boton enviar
-function habilitarEnvio() {
-  if (documentoValido && rostroDetectado && behaviorVerified) {
-    submitBtn.disabled = false;
-    submitBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
-    submitBtn.classList.add("bg-green-600", "hover:bg-green-700");
-  }
-}
-
 // iniciar MediaPipe y loop
 async function iniciarMediaPipe() {
   try {
@@ -358,7 +349,19 @@ async function enviarVerificacion(videoBlob) {
     mostrarMensajeUsuario("Error al enviar la verificación", "error");
   }
 }
+// habilitar boton enviar
 
+  function habilitarEnvio() {
+    if (documentoValido && rostroDetectado && behaviorVerified) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+      submitBtn.classList.add("bg-green-600", "hover:bg-green-700");
+    } else {
+      submitBtn.disabled = true;
+      submitBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+      submitBtn.classList.remove("bg-green-600", "hover:bg-green-700");
+    }
+  }
 // Submit btn: inicia flujo completo (record + actions + enviar)
 submitBtn.addEventListener("click", async (e) => {
   e.preventDefault();

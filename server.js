@@ -187,13 +187,11 @@ async function procesarDocumento(entrada, salida) {
 // OCR PARA DOCUMENTO
 async function realizarOCR(rutaImagen) {
     const worker = createWorker({ logger: m => console.log(m) });
-    await worker.load();
-    await worker.loadLanguage("spa");
-    await worker.initialize("spa");
 
+  await worker.initialize('spa'); // Si es requerido, o depende de la versión
     const { data: { text } } = await worker.recognize(rutaImagen);
     await worker.terminate();
-    return text.trim();
+    return text;
 }
 
 // DETECCIÓN TIPO DE DOCUMENTO
