@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Resultados</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <div class="flex">
+    <aside class="w-64 bg-sky-800 text-white p-6 transition-all duration-300" id="sidebar">
+      <div class="flex items-center gap-3 mb-6">
+        <img src="../img/LOGO_CS.jpg" class="w-10 h-10 rounded-full" alt="logo">
+        <div class="sidebar-brand">
+          <h2 class="font-bold text-lg">Admin Panel</h2>
+          <div class="text-xs text-sky-200">Prueba</div>
+        </div>
+        <!-- sidebar toggle removed for static sidebar -->
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Dashboard</a>
+        <a href="solicitudes.html" class="block hover:bg-sky-700 p-2 rounded">📝 Solicitudes</a>
+        <a href="resultados.html" class="block bg-sky-700 p-2 rounded font-semibold">🔍 Resultados</a>
+        <a href="reportes.html" class="block hover:bg-sky-700 p-2 rounded">📊 Reportes</a>
+        <a href="configuracion.html" class="block hover:bg-sky-700 p-2 rounded">⚙️ Configuración</a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Resultados</h1>
+      </header>
+
+      <div class="max-w-6xl mx-auto">
+        <section class="bg-white rounded shadow p-6">
+          <h2 class="font-semibold mb-3">Resultados de verificación</h2>
+          <div id="results-list" class="mt-4 space-y-3"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // sidebar always visible
+    (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
+
+    const fakeResults=[{id:'RES-001',request:'REQ-002',score:0.92,summary:'Coincidencia alta'},{id:'RES-002',request:'REQ-001',score:0.45,summary:'Coincidencia baja - revisar'}];
+    document.getElementById('results-list').innerHTML = fakeResults.map(r=> `<div class="bg-gray-50 p-3 rounded"><div class="font-medium">${r.id} — ${r.request}</div><div class="text-xs text-gray-600">Score: ${r.score} — ${r.summary}</div></div>`).join('');
+  </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Solicitudes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <div class="flex">
+    <aside class="w-64 bg-sky-800 text-white p-6 transition-all duration-300" id="sidebar">
+      <div class="flex items-center gap-3 mb-6">
+        <img src="../img/LOGO_CS.jpg" class="w-10 h-10 rounded-full" alt="logo">
+        <div class="sidebar-brand">
+          <h2 class="font-bold text-lg">Admin Panel</h2>
+          <div class="text-xs text-sky-200">Prueba</div>
+        </div>
+        <!-- sidebar toggle removed for static sidebar -->
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Dashboard</a>
+        <a href="solicitudes.html" class="block bg-sky-700 p-2 rounded font-semibold">📝 Solicitudes</a>
+        <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
+        <a href="reportes.html" class="block hover:bg-sky-700 p-2 rounded">📊 Reportes</a>
+        <a href="configuracion.html" class="block hover:bg-sky-700 p-2 rounded">⚙️ Configuración</a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Solicitudes</h1>
+      </header>
+
+      <div class="max-w-6xl mx-auto">
+        <section class="bg-white rounded shadow p-4">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex gap-2"><input id="search" class="border p-2 rounded" placeholder="Buscar..."></div>
+            <div>
+              <select id="filter-status" class="border p-2 rounded"><option value="all">Todos</option><option value="pending">Pendiente</option><option value="approved">Aprobado</option><option value="rejected">Rechazado</option></select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm"><thead class="text-left text-gray-600 border-b"><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="table-body"></tbody></table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // sidebar always visible
+    (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
+
+    const fakeData=[{id:'REQ-001',nombre:'María Pérez',email:'maria@example.com',fecha:'2025-10-01',estado:'pending'},{id:'REQ-002',nombre:'Juan López',email:'juan@example.com',fecha:'2025-09-21',estado:'approved'},{id:'REQ-003',nombre:'Ana Gómez',email:'ana@example.com',fecha:'2025-09-15',estado:'rejected'}];
+    function render(){ const q=document.getElementById('search').value.toLowerCase(); const status=document.getElementById('filter-status').value; const rows=fakeData.filter(d=> (status==='all'||d.estado===status) && (d.nombre.toLowerCase().includes(q)||d.email.toLowerCase().includes(q)||d.id.toLowerCase().includes(q))); document.getElementById('table-body').innerHTML = rows.map(r=>`<tr class="border-b hover:bg-gray-50"><td class="py-2">${r.id}</td><td class="py-2">${r.nombre}</td><td class="py-2">${r.email}</td><td class="py-2">${r.fecha}</td><td class="py-2">${r.estado}</td><td class="py-2"><button class="px-2 py-1 bg-green-600 text-white rounded">Aprobar</button></td></tr>`).join(''); }
+    document.getElementById('search').addEventListener('input', render); document.getElementById('filter-status').addEventListener('change', render); render();
+  </script>
+</body>
+</html>

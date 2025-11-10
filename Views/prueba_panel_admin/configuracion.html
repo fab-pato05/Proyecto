@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Configuración</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <div class="flex">
+    <aside class="w-64 bg-sky-800 text-white p-6 transition-all duration-300" id="sidebar">
+      <div class="flex items-center gap-3 mb-6">
+        <img src="../img/LOGO_CS.jpg" class="w-10 h-10 rounded-full" alt="logo">
+        <div class="sidebar-brand">
+          <h2 class="font-bold text-lg">Admin Panel</h2>
+          <div class="text-xs text-sky-200">Prueba</div>
+        </div>
+        <button id="sidebarToggle" aria-expanded="true" aria-label="Colapsar menú" class="ml-auto bg-gradient-to-r from-indigo-500 to-sky-500 p-2 rounded-full shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"><path d="M3 6h14M3 10h14M3 14h14" /></svg>
+        </button>
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Dashboard</a>
+        <a href="solicitudes.html" class="block hover:bg-sky-700 p-2 rounded">📝 Solicitudes</a>
+        <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
+        <a href="reportes.html" class="block hover:bg-sky-700 p-2 rounded">📊 Reportes</a>
+        <a href="configuracion.html" class="block bg-sky-700 p-2 rounded font-semibold">⚙️ Configuración</a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Configuración</h1>
+      </header>
+
+      <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded shadow p-6">
+          <h2 class="font-semibold">Ajustes</h2>
+          <form id="config-form" class="mt-4 grid gap-3">
+            <label class="text-sm">Notificaciones por email</label>
+            <input type="email" id="notify-email" placeholder="correo@empresa.com" class="p-2 border rounded" />
+            <label class="text-sm">API endpoint</label>
+            <input type="text" id="api-endpoint" placeholder="https://api.tuempresa.com" class="p-2 border rounded" />
+            <div class="text-right"><button type="button" id="save-config" class="bg-green-600 text-white px-4 py-2 rounded">Guardar</button></div>
+          </form>
+
+          <hr class="my-4" />
+
+          <h3 class="font-semibold">Sugerencias e ideas</h3>
+          <p class="text-sm text-gray-500 mb-2">Recibimos propuestas de organizaciones para mejorar el proyecto.</p>
+
+          <form id="idea-form" class="grid gap-2 max-w-xl">
+            <input type="text" id="idea-company" placeholder="Nombre de la empresa" class="p-2 border rounded" />
+            <input type="email" id="idea-contact" placeholder="Email de contacto" class="p-2 border rounded" />
+            <textarea id="idea-text" rows="4" placeholder="Describe la idea o necesidad" class="p-2 border rounded"></textarea>
+            <div class="flex items-center gap-2">
+              <button type="button" id="submit-idea" class="bg-blue-600 text-white px-4 py-2 rounded">Enviar idea</button>
+              <span id="idea-msg" class="text-sm text-green-600 hidden">Enviada</span>
+            </div>
+          </form>
+
+          <div class="mt-4">
+            <h4 class="font-medium">Ideas recibidas</h4>
+            <div id="ideas-list" class="mt-2 space-y-2 text-sm"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // sidebar always visible
+    (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
+
+    function loadSuggestions(){ try{ return JSON.parse(localStorage.getItem('admin_suggestions')||'[]') }catch(e){ return [] } }
+    function saveSuggestions(arr){ localStorage.setItem('admin_suggestions', JSON.stringify(arr)); }
+    function escapeHtml(str){ return String(str).replace(/[&<>"']/g, function(m){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[m];}); }
+    function renderSuggestions(){ const list=document.getElementById('ideas-list'); const arr=loadSuggestions().slice().reverse(); if(!arr.length){ list.innerHTML='<div class="text-gray-500">Sin sugerencias.</div>'; return;} list.innerHTML=arr.map((s,idx)=>`<div class="bg-gray-50 p-3 rounded flex justify-between items-start"><div><div class="font-medium">${escapeHtml(s.company||'Anónimo')}</div><div class="text-xs text-gray-600">${escapeHtml(s.contact||'')} • ${new Date(s.ts).toLocaleString()}</div><div class="mt-2">${escapeHtml(s.idea)}</div></div><div><button data-idx="${idx}" class="delete-idea text-red-600 text-xs">Eliminar</button></div></div>`).join(''); list.querySelectorAll('.delete-idea').forEach(b=>b.addEventListener('click', function(){ const idx=Number(this.dataset.idx); const arr=loadSuggestions(); arr.splice(arr.length-1-idx,1); saveSuggestions(arr); renderSuggestions(); })); }
+    document.getElementById('submit-idea').addEventListener('click', ()=>{ const company=document.getElementById('idea-company').value.trim(); const contact=document.getElementById('idea-contact').value.trim(); const idea=document.getElementById('idea-text').value.trim(); const msg=document.getElementById('idea-msg'); if(!idea){ msg.textContent='Introduce una idea.'; msg.classList.remove('text-green-600'); msg.classList.add('text-red-600'); msg.classList.remove('hidden'); setTimeout(()=>msg.classList.add('hidden'),2500); return;} const arr=loadSuggestions(); arr.push({company,contact,idea,ts:Date.now()}); saveSuggestions(arr); document.getElementById('idea-company').value=''; document.getElementById('idea-contact').value=''; document.getElementById('idea-text').value=''; msg.textContent='Idea registrada.'; msg.classList.remove('text-red-600'); msg.classList.add('text-green-600'); msg.classList.remove('hidden'); setTimeout(()=>msg.classList.add('hidden'),2000); renderSuggestions(); });
+    renderSuggestions();
+
+    document.getElementById('save-config').addEventListener('click', ()=>{ const email=document.getElementById('notify-email').value; const api=document.getElementById('api-endpoint').value; localStorage.setItem('admin_config', JSON.stringify({email,api})); alert('Configuración guardada.'); });
+  </script>
+</body>
+</html>
