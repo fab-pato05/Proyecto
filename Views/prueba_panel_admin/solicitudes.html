@@ -20,7 +20,7 @@
       </div>
 
       <nav class="space-y-2 text-sm">
-        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Dashboard</a>
+        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Resumen</a>
         <a href="solicitudes.html" class="block bg-sky-700 p-2 rounded font-semibold">📝 Solicitudes</a>
         <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
         <a href="reportes.html" class="block hover:bg-sky-700 p-2 rounded">📊 Reportes</a>
@@ -32,31 +32,55 @@
       <header class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold">Solicitudes</h1>
       </header>
-
       <div class="max-w-6xl mx-auto">
         <section class="bg-white rounded shadow p-4">
           <div class="flex items-center justify-between mb-4">
-            <div class="flex gap-2"><input id="search" class="border p-2 rounded" placeholder="Buscar..."></div>
-            <div>
-              <select id="filter-status" class="border p-2 rounded"><option value="all">Todos</option><option value="pending">Pendiente</option><option value="approved">Aprobado</option><option value="rejected">Rechazado</option></select>
+            <div class="flex gap-2 items-center">
+              <input id="search" class="border p-2 rounded w-80" placeholder="Buscar por nombre">
             </div>
           </div>
 
           <div class="overflow-x-auto">
-            <table class="min-w-full text-sm"><thead class="text-left text-gray-600 border-b"><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="table-body"></tbody></table>
-          </div>
-        </section>
-      </div>
-    </main>
-  </div>
+            <table class="min-w-full text-sm"><thead class="text-left text-gray-600 border-b"><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha</th><th>Tipo doc</th><th>Estado</th><th>Tiempo (s)</th><th>Acciones</th></tr></thead><tbody id="table-body"></tbody></table>
+           </div>
+         </section>
+       </div>
+     </main>
+   </div>
+ 
+   <script>
+     // sidebar always visible
+     (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
+ 
+    // Enhanced fake data with document type and processing time
+    const fakeData=[
+      {id:'REQ-001',nombre:'María Pérez',email:'maria@example.com',fecha:'2025-10-01',estado:'pending', docType:'dni', processingTime:45},
+      {id:'REQ-002',nombre:'Juan López',email:'juan@example.com',fecha:'2025-09-21',estado:'approved', docType:'licencia', processingTime:32},
+      {id:'REQ-003',nombre:'Ana Gómez',email:'ana@example.com',fecha:'2025-09-15',estado:'rejected', docType:'pasaporte', processingTime:60},
+      {id:'REQ-004',nombre:'Carlos Ruiz',email:'carlos@example.com',fecha:'2025-10-03',estado:'pending', docType:'dni', processingTime:20}
+    ];
 
-  <script>
-    // sidebar always visible
-    (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
+    function matchesFilters(item){
+      const q = (document.getElementById('search').value||'').toLowerCase();
+      if(q && !item.nombre.toLowerCase().includes(q)) return false;
+      return true;
+    }
 
-    const fakeData=[{id:'REQ-001',nombre:'María Pérez',email:'maria@example.com',fecha:'2025-10-01',estado:'pending'},{id:'REQ-002',nombre:'Juan López',email:'juan@example.com',fecha:'2025-09-21',estado:'approved'},{id:'REQ-003',nombre:'Ana Gómez',email:'ana@example.com',fecha:'2025-09-15',estado:'rejected'}];
-    function render(){ const q=document.getElementById('search').value.toLowerCase(); const status=document.getElementById('filter-status').value; const rows=fakeData.filter(d=> (status==='all'||d.estado===status) && (d.nombre.toLowerCase().includes(q)||d.email.toLowerCase().includes(q)||d.id.toLowerCase().includes(q))); document.getElementById('table-body').innerHTML = rows.map(r=>`<tr class="border-b hover:bg-gray-50"><td class="py-2">${r.id}</td><td class="py-2">${r.nombre}</td><td class="py-2">${r.email}</td><td class="py-2">${r.fecha}</td><td class="py-2">${r.estado}</td><td class="py-2"><button class="px-2 py-1 bg-green-600 text-white rounded">Aprobar</button></td></tr>`).join(''); }
-    document.getElementById('search').addEventListener('input', render); document.getElementById('filter-status').addEventListener('change', render); render();
+    function onAction(id, newState){
+      const idx = fakeData.findIndex(x=>x.id===id);
+      if(idx>-1){ fakeData[idx].estado = newState; render(); }
+    }
+
+    function render(){
+      const rows = fakeData.filter(matchesFilters);
+      document.getElementById('table-body').innerHTML = rows.map(r=>`<tr class="border-b hover:bg-gray-50"><td class="py-2">${r.id}</td><td class="py-2">${r.nombre}</td><td class="py-2">${r.email}</td><td class="py-2">${r.fecha}</td><td class="py-2">${r.docType}</td><td class="py-2">${r.estado}</td><td class="py-2">${r.processingTime}</td><td class="py-2"><button data-id="${r.id}" class="approve px-2 py-1 bg-green-600 text-white rounded mr-2">Aprobar</button><button data-id="${r.id}" class="reject px-2 py-1 bg-red-600 text-white rounded">Rechazar</button></td></tr>`).join('');
+      // attach handlers
+      document.querySelectorAll('.approve').forEach(b=> b.addEventListener('click', e=> onAction(e.currentTarget.dataset.id, 'approved')));
+      document.querySelectorAll('.reject').forEach(b=> b.addEventListener('click', e=> onAction(e.currentTarget.dataset.id, 'rejected')));
+    }
+
+    document.getElementById('search').addEventListener('input', render);
+    render();
   </script>
 </body>
 </html>

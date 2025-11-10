@@ -6,6 +6,8 @@
   <title>Admin — Reportes</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
 </head>
 <body class="bg-gray-100 min-h-screen font-sans">
@@ -17,11 +19,11 @@
           <h2 class="font-bold text-lg">Admin Panel</h2>
           <div class="text-xs text-sky-200">Prueba</div>
         </div>
-        <!-- sidebar toggle removed for static sidebar -->
+        <!-- sidebar -->
       </div>
 
       <nav class="space-y-2 text-sm">
-        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Dashboard</a>
+        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Resumen</a>
         <a href="solicitudes.html" class="block hover:bg-sky-700 p-2 rounded">📝 Solicitudes</a>
         <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
         <a href="reportes.html" class="block bg-sky-700 p-2 rounded font-semibold">📊 Reportes</a>
@@ -76,7 +78,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     // sidebar always visible
-    (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
+    (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display='';})();
 
     (function(){
       const chartCtx = document.getElementById('report-chart').getContext('2d'); let chart=null;
@@ -86,9 +88,27 @@
       function renderChart(labels,values,type){ if(chart) chart.destroy(); chart=new Chart(chartCtx,{ type:'bar', data:{labels, datasets:[{label:type,data:values,backgroundColor:'rgba(59,130,246,0.6)'}]}, options:{responsive:true, maintainAspectRatio:false}}); }
       function renderTablePreview(labels,values){ const el=document.getElementById('report-table'); el.innerHTML = labels.map((lab,i)=>`<div class="grid grid-cols-2 gap-2 py-1 border-b"><div>${lab}</div><div class="font-medium text-right">${values[i]}</div></div>`).join(''); }
       document.getElementById('gen-report').addEventListener('click', ()=>{ const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const {labels,values}=generateData(type,from,to); renderTablePreview(labels,values); renderChart(labels,values,type); window.__report_preview={labels,values,type}; });
-      document.getElementById('export-report').addEventListener('click', ()=>{ const r=window.__report_preview; if(!r){alert('Genera un reporte primero.');return;} const csv=['date,value'].concat(r.labels.map((l,i)=>`${l},${r.values[i]}`)).join('\n'); const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${r.type}_report.csv`; a.click(); URL.revokeObjectURL(url); });
-      document.getElementById('schedule-report').addEventListener('click', ()=>{ const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const preset=document.getElementById('r-preset').value; const arr=JSON.parse(localStorage.getItem('admin_schedules')||'[]'); arr.push({from,to,type,preset,ts:Date.now()}); localStorage.setItem('admin_schedules',JSON.stringify(arr)); alert('Reporte programado (demo).'); });
+      document.getElementById('export-report').addEventListener('click', ()=>{
+        const r=window.__report_preview; if(!r){alert('Genera un reporte primero.');return;} 
+        // export PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text(`Reporte: ${r.type}`, 10, 10);
+        let y=20;
+        r.labels.forEach((l,i)=>{ doc.text(`${l}: ${r.values[i]}`, 10, y); y+=6; if(y>280){ doc.addPage(); y=20; }});
+        doc.save(`${r.type}_report.pdf`);
+        //exportar Excel (SheetJS)
+        const aoa = [['date','value'], ...r.labels.map((l,i)=>[l, r.values[i]])];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Report');
+        XLSX.writeFile(wb, `${r.type}_report.xlsx`);
+      });
+      document.getElementById('schedule-report').addEventListener('click', ()=>{
+        const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const preset=document.getElementById('r-preset').value;
+        const delivery = prompt('Enviar por (email/csv):', 'email') || 'email';
+        const arr=JSON.parse(localStorage.getItem('admin_schedules')||'[]'); arr.push({from,to,type,preset,delivery,ts:Date.now()}); localStorage.setItem('admin_schedules',JSON.stringify(arr)); alert('Reporte programado (demo).');
+      });
     })();
-  </script>
-</body>
-</html>
+   </script>
+ </body>
+ </html>
