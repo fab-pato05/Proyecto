@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Reportes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <div class="flex">
+    <aside class="w-64 bg-sky-800 text-white p-6 transition-all duration-300" id="sidebar">
+      <div class="flex items-center gap-3 mb-6">
+        <img src="../img/LOGO_CS.jpg" class="w-10 h-10 rounded-full" alt="logo">
+        <div class="sidebar-brand">
+          <h2 class="font-bold text-lg">Admin Panel</h2>
+          <div class="text-xs text-sky-200">Prueba</div>
+        </div>
+        <!-- sidebar -->
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Resumen</a>
+        <a href="solicitudes.html" class="block hover:bg-sky-700 p-2 rounded">📝 Solicitudes</a>
+        <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
+        <a href="reportes.html" class="block bg-sky-700 p-2 rounded font-semibold">📊 Reportes</a>
+        <a href="configuracion.html" class="block hover:bg-sky-700 p-2 rounded">⚙️ Configuración</a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Reportes</h1>
+      </header>
+
+      <div class="max-w-6xl mx-auto">
+        <div class="bg-white rounded shadow p-6 space-y-4">
+          <div class="grid md:grid-cols-4 gap-3">
+            <input id="r-from" type="date" class="p-2 border rounded" />
+            <input id="r-to" type="date" class="p-2 border rounded" />
+            <select id="r-type" class="p-2 border rounded">
+              <option value="activity">Actividad</option>
+              <option value="solicitudes">Solicitudes</option>
+              <option value="pagos">Pagos</option>
+            </select>
+            <select id="r-preset" class="p-2 border rounded">
+              <option value="custom">Personalizado</option>
+              <option value="last7">Últimos 7 días</option>
+              <option value="last30">Últimos 30 días</option>
+              <option value="year">Último año</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="gen-report" class="bg-blue-600 text-white px-4 py-2 rounded">Generar</button>
+            <button id="export-report" class="px-4 py-2 border rounded">Exportar CSV</button>
+            <button id="schedule-report" class="px-4 py-2 bg-amber-500 text-white rounded">Programar</button>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded shadow">
+              <h4 class="font-medium mb-2">Vista previa (tabla)</h4>
+              <div id="report-table" class="text-sm overflow-x-auto max-h-48"></div>
+            </div>
+            <div class="bg-white p-4 rounded shadow">
+              <h4 class="font-medium mb-2">Vista gráfica</h4>
+              <canvas id="report-chart" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // sidebar always visible
+    (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display='';})();
+
+    (function(){
+      const chartCtx = document.getElementById('report-chart').getContext('2d'); let chart=null;
+      function applyPreset(preset){ const now=new Date(); let from=''; if(preset==='last7'){ const d=new Date(now); d.setDate(d.getDate()-7); from=d.toISOString().slice(0,10);} if(preset==='last30'){const d=new Date(now); d.setDate(d.getDate()-30); from=d.toISOString().slice(0,10);} if(preset==='year'){const d=new Date(now); d.setFullYear(d.getFullYear()-1); from=d.toISOString().slice(0,10);} if(from) document.getElementById('r-from').value=from; document.getElementById('r-to').value=new Date().toISOString().slice(0,10); }
+      document.getElementById('r-preset').addEventListener('change', (e)=>{ if(e.target.value!=='custom') applyPreset(e.target.value); });
+      function generateData(type,from,to){ const start = from ? new Date(from): new Date(new Date().setDate(new Date().getDate()-7)); const end = to ? new Date(to) : new Date(); const days = Math.max(1, Math.round((end-start)/(1000*60*60*24)))+1; const labels=[], values=[]; for(let i=0;i<days;i++){ const d=new Date(start); d.setDate(start.getDate()+i); labels.push(d.toISOString().slice(0,10)); values.push(Math.round(Math.random()*100)); } return {labels,values}; }
+      function renderChart(labels,values,type){ if(chart) chart.destroy(); chart=new Chart(chartCtx,{ type:'bar', data:{labels, datasets:[{label:type,data:values,backgroundColor:'rgba(59,130,246,0.6)'}]}, options:{responsive:true, maintainAspectRatio:false}}); }
+      function renderTablePreview(labels,values){ const el=document.getElementById('report-table'); el.innerHTML = labels.map((lab,i)=>`<div class="grid grid-cols-2 gap-2 py-1 border-b"><div>${lab}</div><div class="font-medium text-right">${values[i]}</div></div>`).join(''); }
+      document.getElementById('gen-report').addEventListener('click', ()=>{ const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const {labels,values}=generateData(type,from,to); renderTablePreview(labels,values); renderChart(labels,values,type); window.__report_preview={labels,values,type}; });
+      document.getElementById('export-report').addEventListener('click', ()=>{
+        const r=window.__report_preview; if(!r){alert('Genera un reporte primero.');return;} 
+        // export PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text(`Reporte: ${r.type}`, 10, 10);
+        let y=20;
+        r.labels.forEach((l,i)=>{ doc.text(`${l}: ${r.values[i]}`, 10, y); y+=6; if(y>280){ doc.addPage(); y=20; }});
+        doc.save(`${r.type}_report.pdf`);
+        //exportar Excel (SheetJS)
+        const aoa = [['date','value'], ...r.labels.map((l,i)=>[l, r.values[i]])];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Report');
+        XLSX.writeFile(wb, `${r.type}_report.xlsx`);
+      });
+      document.getElementById('schedule-report').addEventListener('click', ()=>{
+        const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const preset=document.getElementById('r-preset').value;
+        const delivery = prompt('Enviar por (email/csv):', 'email') || 'email';
+        const arr=JSON.parse(localStorage.getItem('admin_schedules')||'[]'); arr.push({from,to,type,preset,delivery,ts:Date.now()}); localStorage.setItem('admin_schedules',JSON.stringify(arr)); alert('Reporte programado (demo).');
+      });
+    })();
+   </script>
+ </body>
+ </html>

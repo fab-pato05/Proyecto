@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tutorial — Panel Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+  <div class="flex">
+    <aside class="w-64 bg-sky-800 text-white p-6" id="sidebar">
+      <div class="flex items-center gap-3 mb-6">
+        <img src="../img/LOGO_CS.jpg" class="w-10 h-10 rounded-full" alt="logo">
+        
+    </aside>
+
+    <main class="flex-1 p-8">
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Guía rápida para empresas — Panel de Administración</h1>
+        <a href="configuracion.html" class="text-sm text-sky-600 hover:underline">Volver a Configuración</a>
+      </header>
+
+      <div class="max-w-4xl mx-auto space-y-4">
+        <section class="bg-white p-6 rounded shadow">
+          <h2 class="font-semibold">¿Qué es este proyecto?</h2>
+          <p class="mt-2 text-sm">Este proyecto proporciona una plataforma para gestionar verificaciones realizadas por su organización (identidad, documentos, etc.). El Panel de Administración ofrece una vista centralizada de todas las solicitudes de verificación, herramientas de búsqueda y filtrado, métricas de rendimiento y opciones para exportar o programar reportes.</p>
+        </section>
+
+        <section class="bg-white p-6 rounded shadow">
+          <h2 class="font-semibold">Flujo básico</h2>
+          <ol class="mt-2 list-decimal list-inside text-sm space-y-1">
+            <li>Un usuario envía una solicitud con su documento para verificar.</li>
+            <li>La solicitud aparece en <strong>Solicitudes</strong> en el Panel de Administración.</li>
+            <li>El operador revisa la solicitud y puede <em>Aprobar</em> o <em>Rechazar</em>.</li>
+            <li>Si la verificación biométrica detecta al menos el 90% de parecido con su respectivo documento no es necesario aceptar la solicitud.</li>
+            <li>Los resultados se registran y pueden verse en <strong>Resultados</strong>.</li>
+            <li>Genere reportes desde <strong>Reportes</strong> para analizar métricas (tasa de éxito, fallos, tiempos).</li>
+          </ol>
+        </section>
+
+        <section class="bg-white p-6 rounded shadow">
+          <h2 class="font-semibold">Cómo usar cada sección</h2>
+          <div class="mt-2 space-y-3 text-sm">
+            <div>
+              <strong>Resumen / Dashboard</strong>
+              <p class="text-xs mt-1">Muestra KPIs: tasa de éxito, intentos fallidos y tiempo promedio de procesamiento. Útil para revisar salud operativa a primera vista.</p>
+            </div>
+            <div>
+              <strong>Solicitudes</strong>
+              <p class="text-xs mt-1">Aquí verá la lista de solicitudes. Use el buscador por nombre para localizar rápidamente un usuario. En cada fila puede <em>Aprobar</em> o <em>Rechazar</em> la solicitud.</p>
+            </div>
+            <div>
+              <strong>Resultados</strong>
+              <p class="text-xs mt-1">Contiene los informes de verificación y métricas técnicas asociadas a cada resultado.</p>
+            </div>
+            <div>
+              <strong>Reportes</strong>
+              <p class="text-xs mt-1">Genere reportes por rango de fechas y tipo. Puede descargar en PDF o Excel y programar entregas (demo guarda la programación localmente).</p>
+            </div>
+            <div>
+              <strong>Configuración</strong>
+              <p class="text-xs mt-1">Ajuste notificaciones, canales y opciones de soporte. Desde aquí también puede enviar sugerencias o reportes y acceder al centro de ayuda.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-white p-6 rounded shadow">
+          <h2 class="font-semibold">Métricas clave y qué significan</h2>
+          <ul class="mt-2 list-disc list-inside text-sm space-y-1">
+            <li><strong>Tasa de éxito</strong>: porcentaje de verificaciones aprobadas respecto al total.</li>
+            <li><strong>Intentos fallidos</strong>: número de verificaciones rechazadas o con error.</li>
+            <li><strong>Tiempo promedio</strong>: tiempo medio de procesamiento por verificación (segundos).</li>
+          </ul>
+        </section>
+
+        <section class="bg-white p-6 rounded shadow">
+          <h2 class="font-semibold">Buenas prácticas</h2>
+          <ul class="mt-2 list-disc list-inside text-sm space-y-1">
+            <li>Revise el menú de Resumen al inicio del día para detectar picos o problemas.</li>
+            <li>Use búsquedas por nombre para encontrar rápidamente solicitudes en revisión.</li>
+            <li>Programe reportes semanales para auditoría y seguimiento de SLA.</li>
+            <li>Active notificaciones si desea recibir alertas sobre información o nuevas solicitudes.</li>
+          </ul>
+        </section>
+
+        <section class="bg-white p-6 rounded shadow">
+          <h2 class="font-semibold">Soporte y contacto</h2>
+          <p class="text-sm mt-2">Si su empresa necesita soporte personalizado, utilice la sección <em>Asistencia y soporte</em> en Configuración, o contacte por WhatsApp o llamada al <a href="https://wa.me/50368270392" class="text-blue-600">68270392</a>.</p>
+        </section>
+
+        <footer class="text-xs text-gray-500 mt-6">Documento orientativo — adapte flujos y políticas según su proceso interno. Para integraciones con backend real, contáctenos para desplegar APIs y almacenamiento persistente.</footer>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ensure sidebar visible
+    (function(){ try{ document.getElementById('sidebar').style.display=''; }catch(e){} })();
+  </script>
+</body>
+</html>

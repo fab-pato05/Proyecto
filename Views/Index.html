@@ -44,9 +44,6 @@
 
   <!-- Contenido principal -->
   <main class="container mx-auto px-6 my-10">
-
-<!-- Contenido principal -->
-  <main class="container mx-auto px-6 my-10">
     <!-- Sección de bienvenida -->
     <div class="text-center mb-10">
       <h1 class="text-4xl font-bold text-blue-500 mb-4">Bienvenido a Círculo Seguro</h1>
@@ -221,11 +218,24 @@
   </footer>
 
   <!-- Scripts -->
-<script src="https://unpkg.com/feather-icons"></script>
 
   <script>
-    // Reemplazar íconos Feather
+    // Feather Icons
     feather.replace();
+    // Año dinámico
+    document.getElementById("year").textContent = new Date().getFullYear();
+  <script src="https://unpkg.com/feather-icons"></script>
+  
+  <script type="module" import "./Js/main.js"></script>
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      if (window.feather) {
+        feather.replace();
+      }
+      const yearEl = document.getElementById('year');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     // Establecer año actual en el footer
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -241,8 +251,11 @@
         btn.addEventListener('click', e => e.preventDefault());
       }
     })();
+
+
   </script>
 
+<script src="https://unpkg.com/feather-icons"></script>
   <!-- Main.js: esperar DOM cargado -->
   <script type="module" import = "./Js/main.js"></script>
 </script>
@@ -251,5 +264,3 @@
 
 </body>
 </html>
-
-

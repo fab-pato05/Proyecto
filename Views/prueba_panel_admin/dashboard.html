@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Resumen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <div class="flex">
+    <aside class="w-64 bg-sky-800 text-white p-6 transition-all duration-300" id="sidebar">
+      <div class="flex items-center gap-3 mb-6">
+        <img src="../img/LOGO_CS.jpg" class="w-10 h-10 rounded-full" alt="logo">
+        <div class="sidebar-brand">
+          <h2 class="font-bold text-lg">Admin Panel</h2>
+          <div class="text-xs text-sky-200">Prueba</div>
+        </div>
+        <!-- sidebar toggle removed for static sidebar -->
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="dashboard.html" class="block bg-sky-700 p-2 rounded font-semibold">🏠 Resumen</a>
+        <a href="solicitudes.html" class="block hover:bg-sky-700 p-2 rounded">📝 Solicitudes</a>
+        <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
+        <a href="reportes.html" class="block hover:bg-sky-700 p-2 rounded">📊 Reportes</a>
+        <a href="configuracion.html" class="block hover:bg-sky-700 p-2 rounded">⚙️ Configuración</a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Resumen</h1>
+        <div class="flex items-center gap-3">
+          <button id="btn-refresh" class="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700">Refrescar</button>
+        </div>
+      </header>
+
+      <div class="max-w-6xl mx-auto space-y-6">
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded shadow">
+            <div class="text-sm text-gray-500">Tasa de éxito</div>
+            <div id="kpi-success" class="text-2xl font-bold mt-2">--%</div>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <div class="text-sm text-gray-500">Intentos fallidos</div>
+            <div id="kpi-fails" class="text-2xl font-bold mt-2">--</div>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <div class="text-sm text-gray-500">Tiempo promedio (s)</div>
+            <div id="kpi-avgtime" class="text-2xl font-bold mt-2">--</div>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <div class="text-sm text-gray-500">Solicitudes pendientes</div>
+            <div id="stat-pending" class="text-2xl font-bold mt-2">--</div>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <div class="text-sm text-gray-500">Solicitudes aprobadas</div>
+            <div id="stat-approved" class="text-2xl font-bold mt-2">--</div>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <div class="text-sm text-gray-500">Solicitudes rechazadas</div>
+            <div id="stat-rejected" class="text-2xl font-bold mt-2">--</div>
+          </div>
+        </section>
+
+        <section class="bg-white rounded shadow p-4">
+          <h2 class="font-semibold mb-2">Actividad reciente</h2>
+          <ul id="activity" class="space-y-2 text-sm text-gray-700"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Sidebar always visible
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      sidebar.style.display = '';
+      // remove any persisted collapse state
+      try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){}
+    })();
+
+    // Demo data (expanded, should match solicitudes fakeData fields)
+    const fakeRequests = [
+      {id:'REQ-001', estado:'pending', processingTime:45, docType:'dni', fecha:'2025-10-01'},
+      {id:'REQ-002', estado:'approved', processingTime:32, docType:'licencia', fecha:'2025-09-21'},
+      {id:'REQ-003', estado:'rejected', processingTime:60, docType:'pasaporte', fecha:'2025-09-15'},
+      {id:'REQ-004', estado:'pending', processingTime:20, docType:'dni', fecha:'2025-10-03'}
+    ];
+    const fakeActivity = ['Usuario REQ-004 subió documento','Solicitud REQ-002 aprobada','Informe generado: 2025-10-03'];
+
+    // compute KPIs
+    const total = fakeRequests.length;
+    const approved = fakeRequests.filter(r=>r.estado==='approved').length;
+    const rejected = fakeRequests.filter(r=>r.estado==='rejected').length;
+    const pending = fakeRequests.filter(r=>r.estado==='pending').length;
+    const successRate = Math.round((approved/total)*100);
+    const avgTime = Math.round(fakeRequests.reduce((s,r)=>s+r.processingTime,0)/total);
+
+    document.getElementById('kpi-success').textContent = successRate + '%';
+    document.getElementById('kpi-fails').textContent = rejected;
+    document.getElementById('kpi-avgtime').textContent = avgTime;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-approved').textContent = approved;
+    document.getElementById('stat-rejected').textContent = rejected;
+    document.getElementById('activity').innerHTML = fakeActivity.map(a=>`<li class="bg-gray-50 p-2 rounded">${a}</li>`).join('');
+  </script>
+</body>
+</html>

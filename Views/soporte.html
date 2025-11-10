@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel - Soporte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="img/LOGO_CS.jpg" type="image/jpeg" sizes="32x32">
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+
+  <aside class="bg-sky-700 text-white w-64 p-6 space-y-6 hidden md:block">
+    <h2 class="text-2xl font-bold">MiSeguro</h2>
+    <nav class="space-y-4">
+      <a href="Index.html" class="block hover:bg-indigo-500 p-2 rounded">🏠 Inicio</a>
+      <a href="poliza.html" class="block hover:bg-indigo-500 p-2 rounded">📄 Mi Póliza</a>
+      <a href="pagos.html" class="block hover:bg-indigo-500 p-2 rounded">💳 Pagos</a>
+      <a href="beneficiarios.html" class="block hover:bg-indigo-500 p-2 rounded">👨‍👩‍👧 Beneficiarios</a>
+      <a href="documentos.html" class="block hover:bg-indigo-500 p-2 rounded">📥 Documentos</a>
+      <a href="soporte.html" class="block bg-indigo-500 p-2 rounded font-semibold">❓ Soporte</a>
+    </nav>
+  </aside>
+
+  <main class="flex-1 p-6 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-6">
+      <div class="bg-white shadow rounded-2xl p-6 flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Soporte</h1>
+          <p class="text-sm text-gray-500">Envía una solicitud de ayuda o revisa nuestras preguntas frecuentes</p>
+        </div>
+        <div>
+          <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Abrir ticket</a>
+        </div>
+      </div>
+
+      <section class="bg-white rounded-2xl shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Preguntas frecuentes</h3>
+        <ul class="space-y-3">
+          <li class="bg-gray-50 p-4 rounded">¿Cómo contacto soporte? — Envía un ticket desde este panel.</li>
+          <li class="bg-gray-50 p-4 rounded">¿Puedo cambiar mi método de pago? — Sí, ve a Pagos.</li>
+        </ul>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Enviar ticket</h3>
+        <form>
+          <div class="grid gap-4">
+            <input type="text" placeholder="Asunto" class="p-3 border rounded-lg" />
+            <textarea placeholder="Describe tu problema" class="p-3 border rounded-lg h-32"></textarea>
+            <div class="text-right">
+              <button class="bg-blue-600 text-white px-4 py-2 rounded-lg">Enviar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+</body>
+</html>

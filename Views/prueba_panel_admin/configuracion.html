@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Configuración</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <div class="flex">
+    <aside class="w-64 bg-sky-800 text-white p-6" id="sidebar">
+      <div class="flex items-center gap-3 mb-6">
+        <img src="../img/LOGO_CS.jpg" class="w-10 h-10 rounded-full" alt="logo">
+        <div>
+          <h2 class="font-bold text-lg">Admin Panel</h2>
+          <div class="text-xs text-sky-200">Prueba</div>
+        </div>
+      </div>
+
+      <nav class="space-y-2 text-sm">
+        <a href="dashboard.html" class="block hover:bg-sky-700 p-2 rounded">🏠 Resumen</a>
+        <a href="solicitudes.html" class="block hover:bg-sky-700 p-2 rounded">📝 Solicitudes</a>
+        <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
+        <a href="reportes.html" class="block hover:bg-sky-700 p-2 rounded">📊 Reportes</a>
+        <a href="configuracion.html" class="block bg-sky-700 p-2 rounded font-semibold">⚙️ Configuración</a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+      <header class="mb-6">
+        <h1 class="text-2xl font-bold">⚙️ Opciones generales de configuración</h1>
+      </header>
+
+      <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded shadow p-6 space-y-4">
+          <h2 class="font-semibold">🔔 Avisos de solicitudes</h2>
+
+          <div class="grid gap-3">
+            <label class="flex items-center gap-3">
+              <input type="checkbox" id="cfg-enable-notifications" class="h-4 w-4">
+              <span>Activar notificaciones por correo</span>
+            </label>
+
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Frecuencia de notificaciones</label>
+              <select id="cfg-frequency" class="p-2 border rounded w-full">
+                <option value="daily">Diaria</option>
+                <option value="weekly">Semanal</option>
+                <option value="instant">Instantánea</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Canal de notificación</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center gap-2"><input type="checkbox" id="ch-email" /> Correo</label>
+                <label class="flex items-center gap-2"><input type="checkbox" id="ch-whatsapp" /> WhatsApp <span class="text-xs text-sky-200 ml-2">(68270392)</span></label>
+                <label class="flex items-center gap-2"><input type="checkbox" id="ch-app" /> App</label>
+                <label class="flex items-center gap-2"><input type="checkbox" id="ch-sms" /> SMS</label>
+              </div>
+            </div>
+
+            <div class="text-right">
+              <button id="cfg-save" class="bg-green-600 text-white px-4 py-2 rounded">Guardar cambios</button>
+            </div>
+
+            <div id="cfg-msg" class="text-sm text-green-600 hidden">Guardado</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="max-w-3xl mx-auto mt-6">
+        <div class="bg-white rounded shadow p-6 space-y-4">
+          <h2 class="font-semibold">🧠 Asistencia y soporte</h2>
+          <p class="text-sm text-gray-600">Soporte y recursos para administradores y empresas colaboradoras.</p>
+
+          <div class="grid gap-3">
+            <button id="help-center" class="px-4 py-2 bg-black text-white rounded">Centro de ayuda</button>
+            <button id="chat-support" class="px-4 py-2 bg-purple-600 text-white rounded">Chat con soporte técnico (WhatsApp)</button>
+            <button id="tutorial" class="px-4 py-2 bg-sky-600 text-white rounded">Tutorial interactivo / guía rápida</button>
+
+            <div class="pt-2">
+              <label class="block text-sm text-gray-600 mb-1">Reportar un problema</label>
+              <textarea id="report-text" rows="3" class="w-full p-2 border rounded" placeholder="Describe el problema..."></textarea>
+              <div class="flex justify-end gap-2 mt-2">
+                <button id="submit-report" class="px-3 py-2 bg-red-600 text-white rounded">Reportar</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Enviar sugerencia / calificación</label>
+              <input id="feedback-text" class="w-full p-2 border rounded" placeholder="Tu sugerencia o valoración" />
+              <div class="flex justify-end gap-2 mt-2">
+                <button id="submit-feedback" class="px-3 py-2 bg-blue-600 text-white rounded">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Load/save config to localStorage
+    const KEY = 'admin_general_config_v1';
+    function loadConfig(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return {}; } }
+    function saveConfig(cfg){ localStorage.setItem(KEY, JSON.stringify(cfg)); }
+
+    function applyToForm(cfg){
+      document.getElementById('cfg-enable-notifications').checked = !!cfg.enableNotifications;
+      document.getElementById('cfg-frequency').value = cfg.frequency || 'daily';
+      document.getElementById('ch-email').checked = !!(cfg.channels && cfg.channels.email);
+      document.getElementById('ch-whatsapp').checked = !!(cfg.channels && cfg.channels.whatsapp);
+      document.getElementById('ch-app').checked = !!(cfg.channels && cfg.channels.app);
+      document.getElementById('ch-sms').checked = !!(cfg.channels && cfg.channels.sms);
+    }
+
+    function readFromForm(){
+      return {
+        enableNotifications: document.getElementById('cfg-enable-notifications').checked,
+        frequency: document.getElementById('cfg-frequency').value,
+        channels: {
+          email: document.getElementById('ch-email').checked,
+          whatsapp: document.getElementById('ch-whatsapp').checked,
+          app: document.getElementById('ch-app').checked,
+          sms: document.getElementById('ch-sms').checked
+        }
+      };
+    }
+
+    function toggleNotificationControls(){
+      const enabled = document.getElementById('cfg-enable-notifications').checked;
+      document.getElementById('cfg-frequency').disabled = !enabled;
+      ['ch-email','ch-whatsapp','ch-app','ch-sms'].forEach(id=> document.getElementById(id).disabled = !enabled);
+    }
+
+    // Support storage helpers
+    function saveReport(text){ const arr = JSON.parse(localStorage.getItem('admin_reports')||'[]'); arr.push({text, ts:Date.now()}); localStorage.setItem('admin_reports', JSON.stringify(arr)); }
+    function saveFeedback(text){ const arr = JSON.parse(localStorage.getItem('admin_feedback')||'[]'); arr.push({text, ts:Date.now()}); localStorage.setItem('admin_feedback', JSON.stringify(arr)); }
+
+    // init
+    (function(){
+      const cfg = loadConfig();
+      applyToForm(cfg);
+      toggleNotificationControls();
+
+      document.getElementById('cfg-enable-notifications').addEventListener('change', ()=> toggleNotificationControls());
+
+      document.getElementById('cfg-save').addEventListener('click', ()=>{
+        const newCfg = readFromForm();
+        saveConfig(newCfg);
+        const msg = document.getElementById('cfg-msg'); msg.classList.remove('hidden'); setTimeout(()=> msg.classList.add('hidden'),2000);
+      });
+
+      // assistance handlers
+      document.getElementById('help-center').addEventListener('click', ()=>{ window.open('https://example.com/help','_blank'); });
+      document.getElementById('chat-support').addEventListener('click', ()=>{ window.open('https://wa.me/50368270392','_blank'); });
+      document.getElementById('tutorial').addEventListener('click', ()=>{ window.location.href = 'Tutorial.html'; });
+
+      document.getElementById('submit-report').addEventListener('click', ()=>{
+        const text = document.getElementById('report-text').value.trim(); if(!text){ alert('Describe el problema.'); return; }
+        saveReport(text); document.getElementById('report-text').value=''; alert('Problema reportado.');
+      });
+
+      document.getElementById('submit-feedback').addEventListener('click', ()=>{
+        const text = document.getElementById('feedback-text').value.trim(); if(!text){ alert('Escribe una sugerencia.'); return; }
+        saveFeedback(text); document.getElementById('feedback-text').value=''; alert('Gracias por tu feedback.');
+      });
+    })();
+  </script>
+ </body>
+ </html>
