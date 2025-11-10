@@ -44,9 +44,6 @@
 
   <!-- Contenido principal -->
   <main class="container mx-auto px-6 my-10">
-
-<!-- Contenido principal -->
-  <main class="container mx-auto px-6 my-10">
     <!-- Sección de bienvenida -->
     <div class="text-center mb-10">
       <h1 class="text-4xl font-bold text-blue-500 mb-4">Bienvenido a Círculo Seguro</h1>
@@ -220,48 +217,30 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
-
-  <script>
-    // Feather Icons
-    feather.replace();
-    // Año dinámico
-    document.getElementById("year").textContent = new Date().getFullYear();
+  <!-- Scripts limpios: una inclusión de feather-icons, init al DOM ready y carga del módulo main -->
   <script src="https://unpkg.com/feather-icons"></script>
-  
-  <script type="module" import "./Js/main.js"></script>
-  </script>
-
   <script>
-    // Reemplazar íconos Feather
-    feather.replace();
-
-    // Establecer año actual en el footer
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // 🔒 Ocultar botón "Descargar" dentro de Electron
-    (function() {
-      const isElectron = navigator.userAgent.toLowerCase().includes('electron');
-      const btn = document.getElementById('btn-descargar');
-      if (isElectron && btn) {
-        btn.style.display = 'none';
-        btn.setAttribute('aria-hidden', 'true');
-        btn.setAttribute('tabindex', '-1');
-        btn.addEventListener('click', e => e.preventDefault());
+    document.addEventListener('DOMContentLoaded', function(){
+      if (window.feather) {
+        feather.replace();
       }
-    })();
+      const yearEl = document.getElementById('year');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-
+      // Ocultar botón "Descargar" dentro de Electron
+      (function() {
+        const isElectron = navigator.userAgent.toLowerCase().includes('electron');
+        const btn = document.getElementById('btn-descargar');
+        if (isElectron && btn) {
+          btn.style.display = 'none';
+          btn.setAttribute('aria-hidden', 'true');
+          btn.setAttribute('tabindex', '-1');
+          btn.addEventListener('click', e => e.preventDefault());
+        }
+      })();
+    });
   </script>
 
-<script src="https://unpkg.com/feather-icons"></script>
-  <!-- Main.js: esperar DOM cargado -->
-  <script type="module" import = "./Js/main.js"></script>
-</script>
-
-  </script>
-
+  <script type="module" src="./Js/main.js"></script>
 </body>
 </html>
-
-

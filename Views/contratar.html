@@ -8,24 +8,20 @@
 <body class="bg-gray-50 flex justify-center items-center min-h-screen">
 
   <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
-    <h2 class="text-2xl font-bold mb-4 text-green-700">¡Gracias por tu solicitud!</h2>
+    <img src="img/LOGO_CS.jpg" alt="Logo" class="mx-auto w-20 h-20 rounded-full mb-4">
+    <h2 class="text-2xl font-bold mb-2 text-blue-600">¡Gracias! Procesando tu cotización</h2>
 
-    <p class="text-gray-700 mb-4">
-      Tu cotización será enviada al correo electrónico que registraste.
-    </p>
+    <p class="text-gray-700 mb-4">Estamos generando tu cotización. Pronto recibirás un correo con los detalles y el número de referencia.</p>
 
-    <p class="text-gray-700 mb-4">
-      Recibirás un <strong>número de orden de cotizante</strong>, el cual deberás usar para crear tu cuenta.
-    </p>
+    <p class="text-gray-600 mb-6">El número de cotización tendrá una vigencia de <strong>24 horas</strong>.</p>
 
-    <p class="text-gray-700 mb-6">
-      Este código tendrá una <strong>vigencia de 24 horas</strong>.
-    </p>
+    <div class="flex justify-center gap-4">
+      <button onclick="window.location.href='Descarga.html'" 
+        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Ver cotización</button>
 
-    <button onclick="window.location.href='Index.html'" 
-      class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
-      Ir al Inicio
-    </button>
+      <button onclick="window.location.href='Index.html'" 
+        class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition">Ir al Inicio</button>
+    </div>
   </div>
 
 </body>
