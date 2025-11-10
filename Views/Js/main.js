@@ -14,6 +14,8 @@ let documentoValido = false;
 let behaviorVerified = false;
 let facePositions = [];
 let faceMesh, pose;
+//Variable gobal de usuario 
+let user_id = null; // global
 
 // Recording
 let mediaRecorder;
@@ -109,8 +111,14 @@ docInput.addEventListener("change", (e) => {
 // iniciar MediaPipe y loop
 async function iniciarMediaPipe() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-    video.srcObject = stream;
+  const stream = await navigator.mediaDevices.getUserMedia({
+  video: {
+    width: { ideal: 640 },
+    height: { ideal: 480 },
+    facingMode: "user"
+  }
+});
+video.srcObject = stream;
     await video.play();
 
     video.onloadedmetadata = () => {
@@ -304,14 +312,16 @@ async function enviarVerificacion(videoBlob) {
   try {
     const file = docInput.files[0];
     if (!file) { mostrarMensajeUsuario("Documento no encontrado", "error"); return; }
+
     const fd = new FormData();
     fd.append("doc", file);
     fd.append("video", videoBlob, `selfie-${Date.now()}.webm`);
     fd.append("acciones", JSON.stringify(accionesRegistro));
     fd.append("device", JSON.stringify(deviceInfo()));
-    // opcional: user_id o user_email
-    // fd.append("user_id", window.currentUserId || "");
+    fd.append("user_id", user_id); 
+
     mostrarMensajeUsuario("Enviando verificación...");
+
     const resp = await fetch("http://localhost:3000/verificar-identidad", { method: "POST", body: fd });
     const data = await resp.json();
     console.log("Respuesta verificación:", data);
@@ -328,54 +338,82 @@ async function enviarVerificacion(videoBlob) {
       docStatus.textContent = data.mensaje || "Fallo";
       docStatus.className = "text-sm text-red-600 mt-1";
     }
-
-    // enviar registro de intento adicional (si tienes endpoint)
-    const intento = {
-      user_id: window.currentUserId || null,
-      resultado: data.exito ? "éxito" : "fallo",
-      ocr_resumen: data.ocr_resumen || null,
-      explicacion_ia: data.explicacion_ia || null,
-      acciones: accionesRegistro,
-      device: deviceInfo()
-    };
-    // Asumiendo que tienes un endpoint /registro-intento, si no, comenta esto
+// Registro de intento adicional 
     await fetch("http://localhost:3000/registro-intento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(intento)
+      body: JSON.stringify({
+        user_id: user_id,
+        exito: data.exito,
+        ocr_resumen: data.ocr_resumen || null,
+        explicacion_ia: data.explicacion_ia || null,
+        acciones: accionesRegistro,
+        device: deviceInfo()
+      })
     });
+
   } catch (err) {
     console.error("Error enviar verificación:", err);
     mostrarMensajeUsuario("Error al enviar la verificación", "error");
   }
 }
-// habilitar boton enviar
 
-  function habilitarEnvio() {
-    if (documentoValido && rostroDetectado && behaviorVerified) {
-      submitBtn.disabled = false;
-      submitBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
-      submitBtn.classList.add("bg-green-600", "hover:bg-green-700");
-    } else {
-      submitBtn.disabled = true;
-      submitBtn.classList.add("bg-gray-400", "cursor-not-allowed");
-      submitBtn.classList.remove("bg-green-600", "hover:bg-green-700");
-    }
+// ✅ HABILITAR BOTÓN DE ENVÍO Y EVENTOS FINALES (versión verde)
+// 🔹 El botón se activa cuando hay documento + rostro detectado
+function habilitarEnvio() {
+  if (documentoValido && rostroDetectado) {
+    submitBtn.disabled = false;
+    submitBtn.classList.remove("bg-gray-400", "cursor-not-allowed", "opacity-50");
+    submitBtn.classList.add("bg-green-600", "hover:bg-green-700", "cursor-pointer");
+  } else {
+    submitBtn.disabled = true;
+    submitBtn.classList.remove("bg-green-600", "hover:bg-green-700", "cursor-pointer");
+    submitBtn.classList.add("bg-gray-400", "cursor-not-allowed", "opacity-50");
   }
-// Submit btn: inicia flujo completo (record + actions + enviar)
+}
+
+// ====================================================
+// 🚀 BOTÓN DE ENVÍO: inicia el flujo completo de verificación
+// ====================================================
 submitBtn.addEventListener("click", async (e) => {
   e.preventDefault();
+
+  if (!documentoValido) {
+    mostrarMensajeUsuario("⚠️ Sube primero tu documento antes de continuar.", "error");
+    return;
+  }
+
+  if (!rostroDetectado) {
+    mostrarMensajeUsuario("⚠️ Asegúrate de que tu rostro esté visible en la cámara.", "error");
+    return;
+  }
+
+  // Deshabilita el botón temporalmente durante la verificación
   submitBtn.disabled = true;
+  submitBtn.classList.add("opacity-50", "cursor-not-allowed");
+  submitBtn.classList.remove("hover:bg-green-700", "cursor-pointer");
+
+  mostrarMensajeUsuario("⏳ Iniciando verificación con IA...");
+
+  // Inicia flujo biométrico
   await iniciarFlujoVerificacion();
-  // re-enable after short delay
-  setTimeout(() => { submitBtn.disabled = false; }, 2000);
+
+  // Rehabilita el botón tras breve pausa
+  setTimeout(() => {
+    submitBtn.disabled = false;
+    submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    submitBtn.classList.add("hover:bg-green-700", "cursor-pointer");
+  }, 2000);
 });
 
-// auto iniciar al cargar
+// ====================================================
+// 🔁 AUTO INICIAR COMPONENTES AL CARGAR
+// ====================================================
 window.addEventListener("load", async () => {
-  await iniciarMediaPipe();
-  await mostrarGuiaUsuario();
-  generarInstruccionesAleatorias();
-  registrarAccionSolicitada(instrucciones[0]);
+  await iniciarMediaPipe();            // Inicia cámara y detección facial
+  await mostrarGuiaUsuario();          // Muestra guía inicial al usuario
+  generarInstruccionesAleatorias();    // Prepara las instrucciones de acción
+  registrarAccionSolicitada(instrucciones[0]); // Registra primera instrucción
+  mostrarMensajeUsuario(" Sistema listo para iniciar verificación.");
 });
 

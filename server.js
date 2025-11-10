@@ -26,8 +26,15 @@ dotenv.config();
 // ===== CONFIG =====
 const app = express();
 app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(process.cwd(), "Views")));
-const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.PORT || 5432);
+
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"]
+}));
 
 // === ENCRIPTACIÓN AES-256 ===
 const ALGORITHM = "aes-256-cbc";
@@ -53,7 +60,6 @@ function decryptBuffer(base64Data, ivHex) {
 }
 
 // ===== Helmet + rate limit + middlewares =====
-app.use(cors());
 app.use(helmet({
     contentSecurityPolicy: {
         useDefaults: true,
@@ -66,7 +72,7 @@ app.use(helmet({
 }));
 app.set('trust proxy', 1);
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
-app.use(express.urlencoded({ extended: true }));
+
 
 // ===== Static folders =====
 app.use("/js", express.static(path.join(process.cwd(), "Views/Js")));
@@ -81,7 +87,7 @@ const pool = new Pool({
     host: process.env.NEON_HOST,
     database: process.env.NEON_DATABASE,
     password: process.env.NEON_PASSWORD,
-    port: Number(process.env.NEON_PORT || 5432),
+    port: Number(process.env.NEON_PORT || 3000),
     ssl: {
         rejectUnauthorized: false,
     },
@@ -119,7 +125,8 @@ async function conectarRedis() {
 const rekognitionClient = process.env.AWS_REGION ? new RekognitionClient({ region: process.env.AWS_REGION }) : null;
 
 // Configurar ruta de ffprobe
-ffmpeg.setFfprobePath("C:/ffmpeg/bin/ffprobe.exe");
+const FFPROBE_PATH = process.env.FFPROBE_PATH || "C:/Users/marjorie.guzman/Downloads/ffmpeg/ffmpeg-8.0-essentials_build/bin";
+ffmpeg.setFfprobePath(FFPROBE_PATH)
 
 // ===== MULTER - UPLOAD FILES =====
 const storage = multer.diskStorage({
@@ -186,14 +193,46 @@ async function procesarDocumento(entrada, salida) {
 
 // OCR PARA DOCUMENTO
 async function realizarOCR(rutaImagen) {
-    const worker = createWorker({ logger: m => console.log(m) });
+    // 1️⃣ Verificar que el archivo existe
+    if (!rutaImagen || !fs.existsSync(rutaImagen)) {
+        console.warn("⚠️ Archivo no encontrado para OCR:", rutaImagen);
+        return "";
+    }
 
-  await worker.initialize('spa'); // Si es requerido, o depende de la versión
-    const { data: { text } } = await worker.recognize(rutaImagen);
-    await worker.terminate();
-    return text;
+    const worker = await createWorker(); 
+
+    try {
+        // 2️⃣ Inicializar worker correctamente
+        await worker.load();
+        await worker.loadLanguage('spa'); // o 'eng' si es inglés
+        await worker.initialize('spa');
+
+        // 3️⃣ Reconocer texto
+        const { data: { text } } = await worker.recognize(rutaImagen);
+        console.log("OCR resultado:", text);
+        return text || "";
+
+    } catch (err) {
+        console.error("❌ Error OCR:", err);
+        return "";
+    } finally {
+        // 4️⃣ Terminar worker aunque falle
+        await worker.terminate();
+    }
 }
 
+//extraer el identificar del documento 
+function extraerIdentificadorDesdeOCR(ocrText) {
+    if (!ocrText) return null;
+    const text = ocrText.toUpperCase();
+    //DUI EL SALVADOR: 00000000-0
+    const matchDUI = text.match(/\b\d{8}-\d\b/);
+    if (matchDUI) return matchDUI[0];
+    //PASAPORTE: LETRAS + NUMEROS 
+    const macthPasaporte = text.match(/\b[A-Z]{1,2}\d{6,8}\b/);
+    if (macthPasaporte) return macthPasaporte[0];
+    return null;
+}
 // DETECCIÓN TIPO DE DOCUMENTO
 function detectarTipoDocumento(texto) {
     texto = texto.toUpperCase();
@@ -204,34 +243,28 @@ function detectarTipoDocumento(texto) {
 }
 
 // COMPARACIÓN FACIAL AWS (usando SDK v3)
-async function compararRostros(docPath, selfiePath) {
-    if (!rekognitionClient) {
-        console.warn("AWS Rekognition no configurado");
-        return { ok: false, similarity: 0 };
-    }
-
-    const imgDoc = fs.readFileSync(docPath);
-    const imgSelfie = fs.readFileSync(selfiePath);
+// Comparar rostros (documento vs selfie/frame)
+async function compararRostros(docBuffer, selfieBuffer, threshold = 80) {
+    if (!rekognitionClient) return { ok: false, similarity: 0 };
 
     const command = new CompareFacesCommand({
-        SourceImage: { Bytes: imgDoc },
-        TargetImage: { Bytes: imgSelfie },
-        SimilarityThreshold: 80
+        SourceImage: { Bytes: docBuffer },
+        TargetImage: { Bytes: selfieBuffer },
+        SimilarityThreshold: threshold
     });
 
     try {
         const result = await rekognitionClient.send(command);
         if (result.FaceMatches && result.FaceMatches.length > 0) {
             const similarity = result.FaceMatches[0].Similarity;
-            return { ok: similarity >= 80, similarity };
+            return { ok: similarity >= threshold, similarity };
         }
         return { ok: false, similarity: 0 };
-    } catch (error) {
-        console.error("Error en comparación facial:", error);
+    } catch (err) {
+        console.error("❌ Error compararRostros:", err);
         return { ok: false, similarity: 0 };
     }
 }
-
 // COMPARAR VIDEOS
 async function compararVideos(video1, video2) {
     try {
@@ -332,7 +365,7 @@ async function guardarVerificacion({
 // Página principal
 app.get('/', (req, res) => res.sendFile(path.join(process.cwd(), 'Views/Index.html')));
 
-// GUARDAR REFERENCIA (del segundo código)
+// GUARDAR REFERENCIA 
 app.post("/guardar-referencia", async (req, res) => {
     try {
         const { usuario_id, imagen_base64 } = req.body;
@@ -445,7 +478,7 @@ app.post('/guardar-contratacion', async (req, res) => {
             usuario_id,
             nombre_completo,
             correo,celular) 
-            VALUES($1,$2,$3,$4)`, 
+            VALUES($1,$2,$3,$4)`,
             [usuario_id, nombre_completo, correo, celular]);
         res.send('✅ Contratación registrada correctamente');
     } catch (err) {
@@ -454,128 +487,84 @@ app.post('/guardar-contratacion', async (req, res) => {
     }
 });
 
-// Endpoint verificación de identidad (OCR + opcional comparación facial con Rekognition) - CORREGIDO
-app.post('/verificar-identidad', upload.fields([{ name: 'doc' }, { name: 'video' }]), async (req, res) => {
-    let tmpFilesToRemove = [];
-    let tipoDocumentoDetectado = "Desconocido"; // ✅ MOVIDO AQUÍ
-    
+app.post('/verificar-identidad', upload.fields([
+    { name: 'doc', maxCount: 1 },
+    { name: 'video', maxCount: 1 }
+]), async (req, res) => {
+
+    const tmpFilesToRemove = [];
+    let tipoDocumentoDetectado = "DESCONOCIDO";
+
     try {
-        if (!req.files || !req.files['doc'] || req.files['doc'].length === 0) {
+        // 1️⃣ Validación inicial
+        if (!req.files?.doc?.[0]) {
             return res.status(400).json({ exito: false, mensaje: 'Documento no enviado' });
         }
-        
-        const docFile = req.files['doc'][0];
+
+        const docFile = req.files.doc[0];
         const docPath = docFile.path;
         tmpFilesToRemove.push(docPath);
+
+        // 2️⃣ Procesar documento
+        const processedDocPath = path.join(path.dirname(docPath), `proc_${uuidv4()}.png`);
+        await procesarDocumento(docPath, processedDocPath);
+        tmpFilesToRemove.push(processedDocPath);
 
         // Encriptar documento si KEY disponible
         let encryptedDoc = null;
         try {
             const docBuffer = fs.readFileSync(docPath);
             if (KEY) encryptedDoc = encryptBuffer(docBuffer);
-        } catch (e) { console.warn('No se pudo encriptar doc:', e); }
-
-        // OCR con Tesseract
-
-        let ocrText = '';
-        let shapExplanation = 'Explicación no disponible';
-        try {
-            const worker = await createWorker();
-            await worker.load();
-            await worker.loadLanguage('spa');
-            await worker.initialize('spa');
-            const { data: { text } } = await worker.recognize(docPath);
-            await worker.terminate();
-            ocrText = (text || '').trim();
-            
-            // ✅ Verificar si el documento parece un DUI o pasaporte
-            try {
-                const textoMinus = ocrText.toLowerCase(); 
-                if (textoMinus.includes("dui") && textoMinus.includes("identidad") && textoMinus.includes("el salvador")) {
-                    tipoDocumentoDetectado = "DUI"; 
-                } else if (textoMinus.includes("pasaporte") && textoMinus.includes("passport")) {
-                    tipoDocumentoDetectado = "Pasaporte"; 
-                } else {
-                    tipoDocumentoDetectado = "Foto no válida (no es un documento oficial)"; 
-                }
-            } catch (e) { 
-                console.warn("Error analizando tipo de documento:", e); 
-            }
-            
-            // ✅ VALIDACIÓN MOVIDA AQUÍ (donde 'res' existe)
-            if (tipoDocumentoDetectado === "Foto no válida (no es un documento oficial)") {
-                tmpFilesToRemove.forEach(p => safeUnlink(p));
-                return res.json({
-                    exito: false,
-                    mensaje: "El archivo subido no parece un documento oficial (DUI o pasaporte).",
-                    tipo_documento: tipoDocumentoDetectado,
-                    vista_previa: `/uploads/${path.basename(docPath)}`
-                });
-            }
-            async function realizarOCR(rutaImagen) {
-    const worker = createWorker({
-        logger: m => console.log(m) // opcional: ver progreso
-    });
-
-    try {
-        // Inicializa solo el idioma (no usar load ni loadLanguage)
-        await worker.load();
-        await worker.loadLanguage('eng'); // solo si tu versión lo requiere
-        await worker.initialize('eng');
-
-        const { data: { text } } = await worker.recognize(rutaImagen);
-        console.log("Texto reconocido:", text);
-        return text;
-    } catch (err) {
-        console.error("OCR/SHAP error:", err);
-    } finally {
-        await worker.terminate();
-    }
-}
-
-            // ejecutar SHAP en python si existe
-            const tmpOcrPath = path.join(process.cwd(), `tmp_ocr_${uuidv4()}.txt`);
-            fs.writeFileSync(tmpOcrPath, ocrText, 'utf8');
-            tmpFilesToRemove.push(tmpOcrPath);
-            shapExplanation = await new Promise((resolve) => {
-                const py = spawn('python', ['shap_explain.py', tmpOcrPath], { cwd: process.cwd() });
-                let out = '';
-                py.stdout.on('data', d => out += d.toString());
-                py.stderr.on('data', d => console.error('shap stderr:', d.toString()));
-                py.on('close', code => { 
-                    try { safeUnlink(tmpOcrPath); } catch (e) { } 
-                    if (code !== 0) return resolve('Explicación no disponible.'); 
-                    resolve(out.trim() || 'Explicación vacía.'); 
-                });
-                py.on('error', () => { 
-                    try { safeUnlink(tmpOcrPath); } catch (e) { } 
-                    resolve('Explicación no disponible.'); 
-                });
-            });
-        } catch (err) {
-            console.error('OCR/SHAP error:', err);
-            ocrText = 'Texto no legible';
-            shapExplanation = 'Imagen no procesable';
+        } catch (e) {
+            console.warn('No se pudo encriptar doc:', e);
         }
 
-        const docUrl = `/uploads/${path.basename(docPath)}`;
+        // 3️⃣ OCR usando la función moderna
+        const ocrText = (await realizarOCR(processedDocPath)) || "Texto no legible";
+
+        // 4️⃣ Determinar tipo de documento
+        const textoMinus = ocrText.toLowerCase();
+        if (textoMinus.includes("dui") && textoMinus.includes("identidad") && textoMinus.includes("el salvador")) {
+            tipoDocumentoDetectado = "DUI";
+        } else if (textoMinus.includes("pasaporte") && textoMinus.includes("passport")) {
+            tipoDocumentoDetectado = "Pasaporte";
+        } else {
+            tipoDocumentoDetectado = "Foto no válida (no es un documento oficial)";
+            tmpFilesToRemove.forEach(p => safeUnlink(p));
+            return res.json({
+                exito: false,
+                mensaje: "El archivo subido no parece un documento oficial (DUI o pasaporte).",
+                tipo_documento: tipoDocumentoDetectado,
+                vista_previa: `/uploads/${path.basename(docPath)}`
+            });
+        }
+
+        // 5️⃣ Extraer identificador del OCR
+        const identificador = extraerIdentificadorDesdeOCR(ocrText) || "DESCONOCIDO";
+
+        // 6️⃣ Extraer rostro del documento
+        const rostroDocBuffer = await extraerRostroDocumento(processedDocPath);
+
+        // 7️⃣ Comparación facial (si video subido)
         let rostroCoincide = false;
         let similarityScore = null;
         let encryptedSelfies = null;
 
-        if (req.files['video'] && req.files['video'][0]) {
-            const videoPath = req.files['video'][0].path;
+        if (req.files.video?.[0]) {
+            const videoPath = req.files.video[0].path;
             tmpFilesToRemove.push(videoPath);
+
             try {
                 const frameBuf = await extraerFrameVideo(videoPath);
-                const rostroDoc = await extraerRostroDocumento(docPath);
-                if (rekClient) {
+
+                if (rekognitionClient) {
                     const compareCmd = new CompareFacesCommand({
                         SourceImage: { Bytes: frameBuf },
-                        TargetImage: { Bytes: rostroDoc },
+                        TargetImage: { Bytes: rostroDocBuffer },
                         SimilarityThreshold: Number(process.env.SIMILARITY_THRESHOLD || 80)
                     });
-                    const compareRes = await rekClient.send(compareCmd);
+
+                    const compareRes = await rekognitionClient.send(compareCmd);
                     if (compareRes.FaceMatches && compareRes.FaceMatches.length > 0) {
                         rostroCoincide = true;
                         similarityScore = compareRes.FaceMatches[0].Similarity || null;
@@ -587,113 +576,70 @@ app.post('/verificar-identidad', upload.fields([{ name: 'doc' }, { name: 'video'
                     console.warn('AWS Rekognition no configurado; se omite comparación facial');
                 }
 
-                // encriptar video si KEY disponible
-                try {
-                    const videoBuffer = fs.readFileSync(videoPath);
-                    if (KEY) {
-                        const encVideo = encryptBuffer(videoBuffer);
-                        encryptedSelfies = [{ data: encVideo.data, iv: encVideo.iv }];
-                    }
-                } catch (e) { console.warn('No se pudo encriptar video:', e); }
+                // Encriptar selfie/video si KEY disponible
+                const videoBuffer = fs.readFileSync(videoPath);
+                if (KEY) encryptedSelfies = [{ data: encryptBuffer(videoBuffer).data, iv: encryptBuffer(videoBuffer).iv }];
+
             } catch (err) {
                 console.error('Error comparación facial:', err);
             }
         }
 
-        // parsear acciones y dispositivo
-        let acciones = null;
-        try { acciones = req.body.acciones ? JSON.parse(req.body.acciones) : null; } catch (e) { acciones = null; }
-        const dispositivo = req.body.device ? JSON.parse(req.body.device) : (req.headers['user-agent'] || null);
-        const user_id = req.body.user_id ? Number(req.body.user_id) : null;
-        const liveness = req.body.liveness === 'true' ? true : (req.body.liveness === 'false' ? false : null);
-        const edad_valida = null;
+        // 8️⃣ Guardar verificación en DB
+        const verifId = await guardarVerificacion({
+            user_id: req.body.user_id ? Number(req.body.user_id) : null,
+            ocrText,
+            similarityScore,
+            match_result: rostroCoincide,
+            liveness: req.body.liveness === 'true',
+            edad_valida: null,
+            documento_path: encryptedDoc ? JSON.stringify(encryptedDoc) : null,
+            selfie_paths: encryptedSelfies,
+            ip: req.ip,
+            dispositivo: req.headers['user-agent'],
+            acciones: req.body.acciones ? JSON.parse(req.body.acciones) : null,
+            resultado_general: rostroCoincide ? "Éxito: rostro coincide" : "Fallo: rostro no coincide",
+            notificado: false
+        });
 
-        const resultado_general = req.files['video'] && req.files['video'][0]
-            ? (rostroCoincide ? 'Éxito: rostro coincide' : 'Fallo: rostro no coincide')
-            : 'Documento recibido (sin verificación facial)';
-
-        // Guardar verificación en DB SOLO SI ES EXITOSA
-        if (rostroCoincide || !req.files['video']) {
-            const verifId = await guardarVerificacion({
-                user_id,
-                ocrText,
-                similarityScore,
-                match_result: rostroCoincide,
-                liveness: liveness === true,
-                edad_valida,
-                documento_path: encryptedDoc ? JSON.stringify({ data: encryptedDoc.data, iv: encryptedDoc.iv }) : null,
-                selfie_paths: encryptedSelfies,
-                ip: req.ip || req.connection.remoteAddress,
-                dispositivo,
-                acciones,
-                resultado_general,
-                notificado: false
-            });
-
-            // Enviar notificación por correo
-            try {
-                let userEmail = null;
-                if (user_id) {
-                    const r = await pool.query('SELECT correo FROM usuarios WHERE id = $1', [user_id]);
-                    if (r.rows.length) userEmail = r.rows[0].correo;
-                }
-                if (!userEmail && req.body.user_email) userEmail = req.body.user_email;
-                if (userEmail && verifId && rostroCoincide && transporter) {
-                    await transporter.sendMail({ 
-                        from: process.env.SMTP_FROM || process.env.EMAIL_USER, 
-                        to: userEmail, 
-                        subject: 'Resultado de verificación', 
-                        text: `Su verificación fue exitosa. Similaridad: ${similarityScore || 'N/A'}. Fecha: ${nowISO()}` 
-                    });
-                    await pool.query('UPDATE verificacion_biometrica SET notificado = true WHERE id = $1', [verifId]);
-                }
-            } catch (err) { console.error('Error enviando notificacion:', err); }
+        // 9️⃣ Registrar intentos en Redis
+        await conectarRedis(); 
+        if (redisClient.isReady) {
+            await redisClient.incr(`INTENTOS:${identificador}`);
+            await redisClient.expire(`INTENTOS:${identificador}`, 60 * 60 * 24);
+            await redisClient.lPush(`LOG:${identificador}`, JSON.stringify({
+                fecha: new Date().toISOString(),
+                ip: req.ip,
+                resultado: rostroCoincide ? "EXITO" : "FALLO",
+                tipoDoc: tipoDocumentoDetectado
+            }));
+            await redisClient.lTrim(`LOG:${identificador}`, 0, 20);
         }
 
-        const ocrSummary = ocrText.length > 150 ? ocrText.substring(0, 150) + '...' : ocrText;
-        
-        if (req.files['video'] && req.files['video'][0]) {
-            if (rostroCoincide) {
-                return res.json({ 
-                    exito: true, 
-                    mensaje: 'Documento válido y rostro coincide', 
-                    tipo_documento: tipoDocumentoDetectado,
-                    ocr_resumen: ocrSummary, 
-                    explicacion_ia: shapExplanation, 
-                    vista_previa: docUrl, 
-                    similarityScore 
-                });
-            } else {
-                return res.json({ 
-                    exito: false, 
-                    mensaje: 'Rostro no coincide con documento', 
-                    tipo_documento: tipoDocumentoDetectado,
-                    ocr_resumen: ocrSummary, 
-                    explicacion_ia: shapExplanation, 
-                    vista_previa: docUrl, 
-                    similarityScore 
-                });
-            }
-        } else {
-            return res.json({ 
-                exito: true, 
-                mensaje: 'Documento recibido (sin verificación facial)', 
-                tipo_documento: tipoDocumentoDetectado, 
-                ocr_resumen: ocrSummary, 
-                explicacion_ia: shapExplanation, 
-                vista_previa: docUrl 
-            });
-        }
+        // 10️⃣ Preparar respuesta
+        const ocrResumen = ocrText.length > 150 ? ocrText.slice(0, 150) + "..." : ocrText;
+        const docUrl = `/uploads/${path.basename(docPath)}`;
+
+        const respuesta = {
+            exito: rostroCoincide || !req.files.video,
+            mensaje: rostroCoincide ? 'Documento válido y rostro coincide' : 'Rostro no coincide con documento',
+            tipo_documento: tipoDocumentoDetectado,
+            identificador,
+            ocr_resumen: ocrResumen,
+            vista_previa: docUrl,
+            similarityScore
+        };
+
+        res.json(respuesta);
 
     } catch (err) {
-        console.error('Error endpoint verificar-identidad:', err);
+        console.error('💥 Error endpoint verificar-identidad:', err);
         res.status(500).json({ exito: false, mensaje: 'Error durante la verificación' });
     } finally {
-        try { tmpFilesToRemove.forEach(p => safeUnlink(p)); } catch (e) { }
+        tmpFilesToRemove.forEach(p => safeUnlink(p));
     }
 });
-
-// Admin: listar verificaciones
+// Admin: listar verificaciones 
 function checkAdmin(req, res, next) {
     const header = req.headers['x-admin-token'] || req.headers.authorization;
     if (header && (header === process.env.ADMIN_TOKEN || (header.startsWith('Bearer ') && header.slice(7) === process.env.ADMIN_TOKEN))) return next();
@@ -709,18 +655,63 @@ app.get('/admin/verificaciones', checkAdmin, async (req, res) => {
             ORDER BY v.created_at DESC LIMIT 500;
         `);
         res.json(rows);
-    } catch (err) { 
-        console.error(err); 
-        res.status(500).json({ ok: false }); 
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ ok: false });
+    }
+});
+app.get('/admin/intentos', checkAdmin, async (req, res) => {
+    try {
+        const { rows } = await pool.query(`SELECT * FROM registro_intentos ORDER BY fecha_exito DESC LIMIT 500;`);
+        res.json(rows);
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ ok: false });
     }
 });
 
-// ✅ INICIAR SERVIDOR CON REDIS
+
+// Registrar intentos en redis 
+app.post("/registro-intento", async (req, res) => {
+    try {
+        await conectarRedis(); // Asegurar conexión activa
+        const { user_id, exito } = req.body;
+        if (!user_id) return res.status(400).json({ ok: false, mensaje: "Falta user_id" });
+
+        const key = `INTENTOS:${user_id}`;
+
+        //  Incrementamos el conteo de intentos
+        const intentos = await redisClient.incr(key);
+
+        // Expira en 24 horas
+        await redisClient.expire(key, 86400);
+
+        console.log(`🔁 Intento #${intentos} para usuario ${user_id}`);
+
+        // Si fue exitoso → guardamos en PostgreSQL
+        if (exito === true || exito === "true") {
+            await pool.query(
+                `INSERT INTO registro_intentos (user_id, intentos, fecha_exito)
+                VALUES ($1, $2, now())`,
+                [user_id, intentos]
+            );
+            return res.json({ ok: true, mensaje: "✅ Intento exitoso guardado" });
+        }
+
+        return res.json({ ok: true, mensaje: "Intento registrado", intentos });
+
+    } catch (err) {
+        console.error("Error guardando intento:", err);
+        return res.status(500).json({ ok: false, mensaje: "Error guardando intento" });
+    }
+});
+
+// ✅ INICIAR SERVIDOR CON REDIS 
 async function iniciarServidor() {
     try {
         // Conectar Redis primero
         await conectarRedis();
-        
+
         // Luego iniciar servidor Express
         app.listen(PORT, () => {
             console.log(`🚀 Servidor activo en http://localhost:${PORT}`);
@@ -733,7 +724,7 @@ async function iniciarServidor() {
     }
 }
 
-// Manejar cierre graceful
+// Manejar cierre graceful 
 process.on('SIGINT', async () => {
     console.log('\n🛑 Cerrando conexiones...');
     try {
@@ -746,6 +737,13 @@ process.on('SIGINT', async () => {
         process.exit(1);
     }
 });
+// === Middleware global de errores ===
+app.use((err, req, res, next) => {
+    console.error("Error no capturado:", err);
+    if (!res.headersSent) {
+        res.status(500).json({ exito: false, mensaje: "Error interno del servidor", detalle: err.message });
+    }
+});
 
-// Iniciar
+// Iniciar 
 iniciarServidor();
