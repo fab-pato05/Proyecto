@@ -217,50 +217,37 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
-
-  <script>
-    // Feather Icons
-    feather.replace();
-    // Año dinámico
-    document.getElementById("year").textContent = new Date().getFullYear();
-  <script src="https://unpkg.com/feather-icons"></script>
-  
-  <script type="module" import "./Js/main.js"></script>
-  </script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      if (window.feather) {
-        feather.replace();
-      }
-      const yearEl = document.getElementById('year');
-      if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-    // Establecer año actual en el footer
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // 🔒 Ocultar botón "Descargar" dentro de Electron
-    (function() {
-      const isElectron = navigator.userAgent.toLowerCase().includes('electron');
-      const btn = document.getElementById('btn-descargar');
-      if (isElectron && btn) {
-        btn.style.display = 'none';
-        btn.setAttribute('aria-hidden', 'true');
-        btn.setAttribute('tabindex', '-1');
-        btn.addEventListener('click', e => e.preventDefault());
-      }
-    })();
-
-
-  </script>
 
 <script src="https://unpkg.com/feather-icons"></script>
-  <!-- Main.js: esperar DOM cargado -->
-  <script type="module" import = "./Js/main.js"></script>
-</script>
+<script type="module" import = "./Js/main.js"></script>
 
-  </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Reemplazar íconos Feather (si está disponible)
+  if (window.feather) {
+    feather.replace();
+  }
+
+  //  Mostrar el año actual en el footer
+  const yearEl = document.getElementById('year');
+  if (yearEl) {
+    yearEl.textContent = new Date().getFullYear();
+  }
+
+  //  Ocultar botón "Descargar" si la app está en Electron
+  (function ocultarBotonElectron() {
+    const isElectron = navigator.userAgent.toLowerCase().includes('electron');
+    const btn = document.getElementById('btn-descargar');
+
+    if (isElectron && btn) {
+      btn.style.display = 'none';
+      btn.setAttribute('aria-hidden', 'true');
+      btn.setAttribute('tabindex', '-1');
+      btn.addEventListener('click', e => e.preventDefault());
+    }
+  })();
+});
+</script>
 
 </body>
 </html>

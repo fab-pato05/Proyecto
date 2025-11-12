@@ -20,6 +20,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 
+
 const { Pool } = pkg;
 dotenv.config();
 
@@ -87,7 +88,7 @@ const pool = new Pool({
     host: process.env.NEON_HOST,
     database: process.env.NEON_DATABASE,
     password: process.env.NEON_PASSWORD,
-    port: Number(process.env.NEON_PORT || 3000),
+    port: Number(process.env.NEON_PORT || 5432),
     ssl: {
         rejectUnauthorized: false,
     },
@@ -102,7 +103,9 @@ pool.connect()
 const redisClient = createClient({
     url: process.env.REDIS_URL,
     socket: {
-        reconnectStrategy: (retries) => Math.min(retries * 50, 500)
+        tls: true,
+        keepAlive: 10000, //Mantiene la conecion viva
+        reconnectStrategy: retries => Math.min(retries * 100, 3000)
     }
 });
 
@@ -199,46 +202,50 @@ async function realizarOCR(rutaImagen) {
         return "";
     }
 
-    const worker = await createWorker(); 
-
     try {
         // 2️⃣ Inicializar worker correctamente
-        await worker.load();
-        await worker.loadLanguage('spa'); // o 'eng' si es inglés
-        await worker.initialize('spa');
-
+        const worker = await createWorker('spa');
         // 3️⃣ Reconocer texto
         const { data: { text } } = await worker.recognize(rutaImagen);
         console.log("OCR resultado:", text);
-        return text || "";
-
-    } catch (err) {
-        console.error("❌ Error OCR:", err);
-        return "";
-    } finally {
         // 4️⃣ Terminar worker aunque falle
         await worker.terminate();
+        return data.text || "";
+
+    } catch (err) {
+        console.error("Error OCR: ", err);
+        return "";
     }
 }
+
 
 //extraer el identificar del documento 
 function extraerIdentificadorDesdeOCR(ocrText) {
     if (!ocrText) return null;
     const text = ocrText.toUpperCase();
     //DUI EL SALVADOR: 00000000-0
-    const matchDUI = text.match(/\b\d{8}-\d\b/);
+    const matchDUI = text.match(/\b[0O]\d{7}-\d\b/);
     if (matchDUI) return matchDUI[0];
     //PASAPORTE: LETRAS + NUMEROS 
-    const macthPasaporte = text.match(/\b[A-Z]{1,2}\d{6,8}\b/);
+    const macthPasaporte = text.match(/\b[A-Z]{1,2}\d{6,9}\b/);
     if (macthPasaporte) return macthPasaporte[0];
     return null;
 }
 // DETECCIÓN TIPO DE DOCUMENTO
-function detectarTipoDocumento(texto) {
-    texto = texto.toUpperCase();
+function detectarTipoDocumento(textoOCR) {
+    const texto = textoOCR.toUpperCase();
 
-    if (texto.includes("PASAPORTE")) return "PASAPORTE";
-    if (texto.match(/[0-9]{8}-[0-9]{1}/)) return "DUI";
+    if (/(PASAPORTE| PASSPORT|PASAPORT)/.test(texto)) {
+        return "PASAPORTE";
+    }
+    if (/\b\d{8}-\d\b/.test(texto)) {
+        return "DUI";
+    }
+    // Buscar frases comunes en documentos nacionales
+    if (/\b\d{8}-\d\b/.test(texto) || /\b[0O]\d{7}-\d\b/.test(texto)) return "DUI";
+    if (/(IDENTIDAD|REPUBLICA|EL SALVADOR|NACIONAL)/.test(texto)) {
+        return "DUI";
+    }
     return "DESCONOCIDO";
 }
 
@@ -487,7 +494,14 @@ app.post('/guardar-contratacion', async (req, res) => {
     }
 });
 
-app.post('/verificar-identidad', upload.fields([
+
+
+const router = express.Router();
+
+const MAX_INTENTOS = 5;          // 🔒 Límite de intentos por usuario
+const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
+
+router.post('/verificar-identidad', upload.fields([
     { name: 'doc', maxCount: 1 },
     { name: 'video', maxCount: 1 }
 ]), async (req, res) => {
@@ -496,7 +510,31 @@ app.post('/verificar-identidad', upload.fields([
     let tipoDocumentoDetectado = "DESCONOCIDO";
 
     try {
-        // 1️⃣ Validación inicial
+        // =========================================================
+        // 🔹 1. VALIDAR ID DE USUARIO Y LÍMITE DE INTENTOS (REDIS)
+        // =========================================================
+        const userId = req.body.user_id;
+        if (!userId) {
+            return res.status(400).json({ exito: false, mensaje: "Falta el ID de usuario" });
+        }
+
+        await conectarRedis();
+
+const key = `INTENTOS:${userId}`;
+
+        let intentos = await redisClient.get(key);
+        intentos = intentos ? parseInt(intentos) : 0;
+
+        if (intentos >= MAX_INTENTOS) {
+            return res.status(429).json({
+                exito: false,
+                mensaje: `⚠️ Has alcanzado el máximo de ${MAX_INTENTOS} intentos en 24 horas. Intenta más tarde.`
+            });
+        }
+
+        // =========================================================
+        // 🔹 2. VALIDACIÓN INICIAL DEL DOCUMENTO
+        // =========================================================
         if (!req.files?.doc?.[0]) {
             return res.status(400).json({ exito: false, mensaje: 'Documento no enviado' });
         }
@@ -505,12 +543,14 @@ app.post('/verificar-identidad', upload.fields([
         const docPath = docFile.path;
         tmpFilesToRemove.push(docPath);
 
-        // 2️⃣ Procesar documento
+        // =========================================================
+        // 🔹 3. PROCESAR DOCUMENTO (rotar, limpiar, etc.)
+        // =========================================================
         const processedDocPath = path.join(path.dirname(docPath), `proc_${uuidv4()}.png`);
         await procesarDocumento(docPath, processedDocPath);
         tmpFilesToRemove.push(processedDocPath);
 
-        // Encriptar documento si KEY disponible
+        // Encriptar documento si hay clave disponible
         let encryptedDoc = null;
         try {
             const docBuffer = fs.readFileSync(docPath);
@@ -519,10 +559,14 @@ app.post('/verificar-identidad', upload.fields([
             console.warn('No se pudo encriptar doc:', e);
         }
 
-        // 3️⃣ OCR usando la función moderna
+        // =========================================================
+        // 🔹 4. OCR (lectura de texto del documento)
+        // =========================================================
         const ocrText = (await realizarOCR(processedDocPath)) || "Texto no legible";
 
-        // 4️⃣ Determinar tipo de documento
+        // =========================================================
+        // 🔹 5. DETECTAR TIPO DE DOCUMENTO (DUI o PASAPORTE)
+        // =========================================================
         const textoMinus = ocrText.toLowerCase();
         if (textoMinus.includes("dui") && textoMinus.includes("identidad") && textoMinus.includes("el salvador")) {
             tipoDocumentoDetectado = "DUI";
@@ -539,13 +583,19 @@ app.post('/verificar-identidad', upload.fields([
             });
         }
 
-        // 5️⃣ Extraer identificador del OCR
+        // =========================================================
+        // 🔹 6. EXTRAER IDENTIFICADOR DEL OCR
+        // =========================================================
         const identificador = extraerIdentificadorDesdeOCR(ocrText) || "DESCONOCIDO";
 
-        // 6️⃣ Extraer rostro del documento
+        // =========================================================
+        // 🔹 7. EXTRAER ROSTRO DEL DOCUMENTO
+        // =========================================================
         const rostroDocBuffer = await extraerRostroDocumento(processedDocPath);
 
-        // 7️⃣ Comparación facial (si video subido)
+        // =========================================================
+        // 🔹 8. COMPARACIÓN FACIAL (documento vs selfie/video)
+        // =========================================================
         let rostroCoincide = false;
         let similarityScore = null;
         let encryptedSelfies = null;
@@ -576,7 +626,7 @@ app.post('/verificar-identidad', upload.fields([
                     console.warn('AWS Rekognition no configurado; se omite comparación facial');
                 }
 
-                // Encriptar selfie/video si KEY disponible
+                // Encriptar selfie/video si hay clave
                 const videoBuffer = fs.readFileSync(videoPath);
                 if (KEY) encryptedSelfies = [{ data: encryptBuffer(videoBuffer).data, iv: encryptBuffer(videoBuffer).iv }];
 
@@ -585,60 +635,34 @@ app.post('/verificar-identidad', upload.fields([
             }
         }
 
-        // 8️⃣ Guardar verificación en DB
-        const verifId = await guardarVerificacion({
-            user_id: req.body.user_id ? Number(req.body.user_id) : null,
-            ocrText,
-            similarityScore,
-            match_result: rostroCoincide,
-            liveness: req.body.liveness === 'true',
-            edad_valida: null,
-            documento_path: encryptedDoc ? JSON.stringify(encryptedDoc) : null,
-            selfie_paths: encryptedSelfies,
-            ip: req.ip,
-            dispositivo: req.headers['user-agent'],
-            acciones: req.body.acciones ? JSON.parse(req.body.acciones) : null,
-            resultado_general: rostroCoincide ? "Éxito: rostro coincide" : "Fallo: rostro no coincide",
-            notificado: false
-        });
+        // =========================================================
+        // 🔹 9. REGISTRAR INTENTO EN REDIS
+        // =========================================================
+        await redisClient.incr(key);
+        await redisClient.expire(key, EXPIRACION_INTENTOS);
 
-        // 9️⃣ Registrar intentos en Redis
-        await conectarRedis(); 
-        if (redisClient.isReady) {
-            await redisClient.incr(`INTENTOS:${identificador}`);
-            await redisClient.expire(`INTENTOS:${identificador}`, 60 * 60 * 24);
-            await redisClient.lPush(`LOG:${identificador}`, JSON.stringify({
-                fecha: new Date().toISOString(),
-                ip: req.ip,
-                resultado: rostroCoincide ? "EXITO" : "FALLO",
-                tipoDoc: tipoDocumentoDetectado
-            }));
-            await redisClient.lTrim(`LOG:${identificador}`, 0, 20);
-        }
-
-        // 10️⃣ Preparar respuesta
-        const ocrResumen = ocrText.length > 150 ? ocrText.slice(0, 150) + "..." : ocrText;
-        const docUrl = `/uploads/${path.basename(docPath)}`;
-
-        const respuesta = {
-            exito: rostroCoincide || !req.files.video,
-            mensaje: rostroCoincide ? 'Documento válido y rostro coincide' : 'Rostro no coincide con documento',
+        // =========================================================
+        // 🔹 10. RESPUESTA FINAL
+        // =========================================================
+        res.json({
+            exito: true,
+            mensaje: rostroCoincide
+                ? `✅ Verificación exitosa (Similitud: ${similarityScore?.toFixed(2)}%)`
+                : "❌ Rostro no coincide con el documento",
             tipo_documento: tipoDocumentoDetectado,
             identificador,
-            ocr_resumen: ocrResumen,
-            vista_previa: docUrl,
             similarityScore
-        };
+        });
 
-        res.json(respuesta);
-
-    } catch (err) {
-        console.error('💥 Error endpoint verificar-identidad:', err);
-        res.status(500).json({ exito: false, mensaje: 'Error durante la verificación' });
+    } catch (error) {
+        console.error("Error en /verificar-identidad:", error);
+        res.status(500).json({ exito: false, mensaje: "Error durante la verificación" });
     } finally {
+        // 🔹 Eliminar archivos temporales
         tmpFilesToRemove.forEach(p => safeUnlink(p));
     }
 });
+
 // Admin: listar verificaciones 
 function checkAdmin(req, res, next) {
     const header = req.headers['x-admin-token'] || req.headers.authorization;
@@ -664,7 +688,7 @@ app.get('/admin/intentos', checkAdmin, async (req, res) => {
     try {
         const { rows } = await pool.query(`SELECT * FROM registro_intentos ORDER BY fecha_exito DESC LIMIT 500;`);
         res.json(rows);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({ ok: false });
     }
@@ -678,7 +702,6 @@ app.post("/registro-intento", async (req, res) => {
         const { user_id, exito } = req.body;
         if (!user_id) return res.status(400).json({ ok: false, mensaje: "Falta user_id" });
 
-        const key = `INTENTOS:${user_id}`;
 
         //  Incrementamos el conteo de intentos
         const intentos = await redisClient.incr(key);
@@ -728,15 +751,28 @@ async function iniciarServidor() {
 process.on('SIGINT', async () => {
     console.log('\n🛑 Cerrando conexiones...');
     try {
-        await pool.end();
-        if (redisClient.isOpen) await redisClient.quit();
+        // Cerrar PostgreSQL si está conectado
+        if (pool) {
+            await pool.end();
+            console.log('✅ PostgreSQL cerrado');
+        }
+
+        // Cerrar Redis solo si está abierto
+        if (redisClient && redisClient.isOpen) {
+            await redisClient.quit();
+            console.log('✅ Redis cerrado');
+            // Esperar un poco para permitir cierre TCP limpio
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
         console.log('✅ Conexiones cerradas correctamente');
         process.exit(0);
     } catch (err) {
-        console.error('Error al cerrar:', err);
+        console.error('❌ Error al cerrar:', err);
         process.exit(1);
     }
 });
+
 // === Middleware global de errores ===
 app.use((err, req, res, next) => {
     console.error("Error no capturado:", err);

@@ -338,6 +338,15 @@ async function enviarVerificacion(videoBlob) {
       docStatus.textContent = data.mensaje || "Fallo";
       docStatus.className = "text-sm text-red-600 mt-1";
     }
+    console.log("📤 Enviando datos a /registro-intento:", {
+  user_id,
+  exito: data.exito,
+  ocr_resumen: data.ocr_resumen,
+  explicacion_ia: data.explicacion_ia,
+  acciones: accionesRegistro,
+  device: deviceInfo()
+});
+
 // Registro de intento adicional 
     await fetch("http://localhost:3000/registro-intento", {
       method: "POST",
