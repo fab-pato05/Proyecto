@@ -16,7 +16,7 @@
           <h2 class="font-bold text-lg">Admin Panel</h2>
           <div class="text-xs text-sky-200">Prueba</div>
         </div>
-        <!-- sidebar toggle removed for static sidebar -->
+        <!-- Menu de izquierda -->
       </div>
 
       <nav class="space-y-2 text-sm">
@@ -49,10 +49,10 @@
    </div>
  
    <script>
-     // sidebar always visible
+     // menu siempre visible
      (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
  
-    // Enhanced fake data with document type and processing time
+    // información falsa con tipo de documento y tiempo de procesamiento (despues conectara con base de datos)
     const fakeData=[
       {id:'REQ-001',nombre:'María Pérez',email:'maria@example.com',fecha:'2025-10-01',estado:'pending', docType:'dni', processingTime:45},
       {id:'REQ-002',nombre:'Juan López',email:'juan@example.com',fecha:'2025-09-21',estado:'approved', docType:'licencia', processingTime:32},

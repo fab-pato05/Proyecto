@@ -78,7 +78,7 @@
           <div class="grid gap-3">
             <button id="help-center" class="px-4 py-2 bg-black text-white rounded">Centro de ayuda</button>
             <button id="chat-support" class="px-4 py-2 bg-purple-600 text-white rounded">Chat con soporte técnico (WhatsApp)</button>
-            <button id="tutorial" class="px-4 py-2 bg-sky-600 text-white rounded">Tutorial interactivo / guía rápida</button>
+            <button id="tutorial" class="px-4 py-2 bg-sky-600 text-white rounded">Guía rápida</button>
 
             <div class="pt-2">
               <label class="block text-sm text-gray-600 mb-1">Reportar un problema</label>
@@ -103,7 +103,7 @@
   </div>
 
   <script>
-    // Load/save config to localStorage
+    // cargar/guardar informacion en localStorage
     const KEY = 'admin_general_config_v1';
     function loadConfig(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return {}; } }
     function saveConfig(cfg){ localStorage.setItem(KEY, JSON.stringify(cfg)); }
@@ -136,7 +136,7 @@
       ['ch-email','ch-whatsapp','ch-app','ch-sms'].forEach(id=> document.getElementById(id).disabled = !enabled);
     }
 
-    // Support storage helpers
+    // soporte de almacenamiento
     function saveReport(text){ const arr = JSON.parse(localStorage.getItem('admin_reports')||'[]'); arr.push({text, ts:Date.now()}); localStorage.setItem('admin_reports', JSON.stringify(arr)); }
     function saveFeedback(text){ const arr = JSON.parse(localStorage.getItem('admin_feedback')||'[]'); arr.push({text, ts:Date.now()}); localStorage.setItem('admin_feedback', JSON.stringify(arr)); }
 
@@ -154,7 +154,7 @@
         const msg = document.getElementById('cfg-msg'); msg.classList.remove('hidden'); setTimeout(()=> msg.classList.add('hidden'),2000);
       });
 
-      // assistance handlers
+      // asistente de ayuda
       document.getElementById('help-center').addEventListener('click', ()=>{ window.open('https://example.com/help','_blank'); });
       document.getElementById('chat-support').addEventListener('click', ()=>{ window.open('https://wa.me/50368270392','_blank'); });
       document.getElementById('tutorial').addEventListener('click', ()=>{ window.location.href = 'Tutorial.html'; });
