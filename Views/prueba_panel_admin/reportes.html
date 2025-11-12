@@ -19,7 +19,7 @@
           <h2 class="font-bold text-lg">Admin Panel</h2>
           <div class="text-xs text-sky-200">Prueba</div>
         </div>
-        <!-- sidebar -->
+        <!-- menu de izquierda -->
       </div>
 
       <nav class="space-y-2 text-sm">
@@ -77,7 +77,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // sidebar always visible
+    // menu izquierdo siempre visible
     (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display='';})();
 
     (function(){
@@ -90,7 +90,7 @@
       document.getElementById('gen-report').addEventListener('click', ()=>{ const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const {labels,values}=generateData(type,from,to); renderTablePreview(labels,values); renderChart(labels,values,type); window.__report_preview={labels,values,type}; });
       document.getElementById('export-report').addEventListener('click', ()=>{
         const r=window.__report_preview; if(!r){alert('Genera un reporte primero.');return;} 
-        // export PDF
+        // exporta PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         doc.text(`Reporte: ${r.type}`, 10, 10);

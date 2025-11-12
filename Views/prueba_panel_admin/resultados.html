@@ -16,7 +16,7 @@
           <h2 class="font-bold text-lg">Admin Panel</h2>
           <div class="text-xs text-sky-200">Prueba</div>
         </div>
-        <!-- sidebar toggle removed for static sidebar -->
+        <!-- Menu de izquierda-->
       </div>
 
       <nav class="space-y-2 text-sm">
@@ -43,7 +43,7 @@
   </div>
 
   <script>
-    // sidebar always visible
+    // mwnu siempre visible
     (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
 
     const fakeResults=[{id:'RES-001',request:'REQ-002',score:0.92,summary:'Coincidencia alta'},{id:'RES-002',request:'REQ-001',score:0.45,summary:'Coincidencia baja - revisar'}];
