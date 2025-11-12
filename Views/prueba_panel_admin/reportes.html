@@ -27,6 +27,7 @@
         <a href="solicitudes.html" class="block hover:bg-sky-700 p-2 rounded">📝 Solicitudes</a>
         <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
         <a href="reportes.html" class="block bg-sky-700 p-2 rounded font-semibold">📊 Reportes</a>
+        <a href="cuentas.html" class="block hover:bg-sky-700 p-2 rounded">👥 Cuentas</a>
         <a href="configuracion.html" class="block hover:bg-sky-700 p-2 rounded">⚙️ Configuración</a>
       </nav>
     </aside>
@@ -47,7 +48,7 @@
               <option value="pagos">Pagos</option>
             </select>
             <select id="r-preset" class="p-2 border rounded">
-              <option value="custom">Personalizado</option>
+              <option value="custom">Hoy</option>
               <option value="last7">Últimos 7 días</option>
               <option value="last30">Últimos 30 días</option>
               <option value="year">Último año</option>
@@ -67,7 +68,7 @@
             </div>
             <div class="bg-white p-4 rounded shadow">
               <h4 class="font-medium mb-2">Vista gráfica</h4>
-              <canvas id="report-chart" height="200"></canvas>
+              <canvas id="report-chart" height="10"></canvas>
             </div>
           </div>
         </div>

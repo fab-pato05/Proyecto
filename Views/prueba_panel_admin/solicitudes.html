@@ -24,6 +24,7 @@
         <a href="solicitudes.html" class="block bg-sky-700 p-2 rounded font-semibold">📝 Solicitudes</a>
         <a href="resultados.html" class="block hover:bg-sky-700 p-2 rounded">🔍 Resultados</a>
         <a href="reportes.html" class="block hover:bg-sky-700 p-2 rounded">📊 Reportes</a>
+        <a href="cuentas.html" class="block hover:bg-sky-700 p-2 rounded">👥 Cuentas</a>
         <a href="configuracion.html" class="block hover:bg-sky-700 p-2 rounded">⚙️ Configuración</a>
       </nav>
     </aside>
@@ -36,7 +37,7 @@
         <section class="bg-white rounded shadow p-4">
           <div class="flex items-center justify-between mb-4">
             <div class="flex gap-2 items-center">
-              <input id="search" class="border p-2 rounded w-80" placeholder="Buscar por nombre">
+              <input id="search" class="border p-2 rounded w-80" placeholder="Buscar por nombre, ID">
             </div>
           </div>
 
@@ -52,7 +53,7 @@
      // menu siempre visible
      (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
  
-    // información falsa con tipo de documento y tiempo de procesamiento (despues conectara con base de datos)
+    // información falsa con tipo de documento, gmail y tiempo de procesamiento (despues conectara con base de datos)
     const fakeData=[
       {id:'REQ-001',nombre:'María Pérez',email:'maria@example.com',fecha:'2025-10-01',estado:'pending', docType:'dni', processingTime:45},
       {id:'REQ-002',nombre:'Juan López',email:'juan@example.com',fecha:'2025-09-21',estado:'approved', docType:'licencia', processingTime:32},
