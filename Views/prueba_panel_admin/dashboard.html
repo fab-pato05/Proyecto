@@ -16,7 +16,7 @@
           <h2 class="font-bold text-lg">Admin Panel</h2>
           <div class="text-xs text-sky-200">Prueba</div>
         </div>
-        <!-- sidebar toggle removed for static sidebar -->
+        <!-- menu de izquierda -->
       </div>
 
       <nav class="space-y-2 text-sm">
@@ -73,15 +73,14 @@
   </div>
 
   <script>
-    // Sidebar always visible
+    // menu de izquierda visible
     (function(){
       const sidebar = document.getElementById('sidebar');
       sidebar.style.display = '';
-      // remove any persisted collapse state
       try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){}
     })();
 
-    // Demo data (expanded, should match solicitudes fakeData fields)
+    // Datos de prueba
     const fakeRequests = [
       {id:'REQ-001', estado:'pending', processingTime:45, docType:'dni', fecha:'2025-10-01'},
       {id:'REQ-002', estado:'approved', processingTime:32, docType:'licencia', fecha:'2025-09-21'},
@@ -90,7 +89,7 @@
     ];
     const fakeActivity = ['Usuario REQ-004 subió documento','Solicitud REQ-002 aprobada','Informe generado: 2025-10-03'];
 
-    // compute KPIs
+    // KPIs
     const total = fakeRequests.length;
     const approved = fakeRequests.filter(r=>r.estado==='approved').length;
     const rejected = fakeRequests.filter(r=>r.estado==='rejected').length;
