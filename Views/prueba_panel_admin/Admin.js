@@ -168,11 +168,11 @@ function initReportes() {
     (function () {
         const chartCtx = document.getElementById('report-chart').getContext('2d');
         let chart = null;
-
+        // Aplicar preset de fechas
         function applyPreset(preset) {
             const now = new Date();
             let from = '';
-            if (preset === 'day') { { const d = new Date(now); d.setDate(d.getDate() - 1); from = d.toISOString().slice(0, 10); } }
+            if (preset === 'day1') { { const d = new Date(now); d.setDate(d.getDate() - 1); from = d.toISOString().slice(0, 10); } }
             if (preset === 'last7') { const d = new Date(now); d.setDate(d.getDate() - 7); from = d.toISOString().slice(0, 10); }
             if (preset === 'last30') { const d = new Date(now); d.setDate(d.getDate() - 30); from = d.toISOString().slice(0, 10); }
             if (preset === 'year') { const d = new Date(now); d.setFullYear(d.getFullYear() - 1); from = d.toISOString().slice(0, 10); }
@@ -180,11 +180,11 @@ function initReportes() {
             if (from) document.getElementById('r-from').value = from;
             document.getElementById('r-to').value = new Date().toISOString().slice(0, 10);
         }
-
+  
         document.getElementById('r-preset').addEventListener('change', (e) => {
             if (e.target.value !== 'custom') applyPreset(e.target.value);
         });
-
+        // Generar datos de prueba
         function generateData(type, from, to) {
             const start = from ? new Date(from) : new Date(new Date().setDate(new Date().getDate() - 7));
             const end = to ? new Date(to) : new Date();
@@ -218,7 +218,7 @@ function initReportes() {
                 }
             });
         }
-
+        // Renderizar tabla de vista previa
         function renderTablePreview(labels, values) {
             const el = document.getElementById('report-table');
             el.innerHTML = labels.map((lab, i) =>
