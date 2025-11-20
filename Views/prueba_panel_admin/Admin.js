@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (location.pathname.includes("configuracion.html")) {
     initConfiguracion();
   }
-
   // Detectar si estamos en Dashboard.html
   if (location.pathname.includes("dashboard.html")) {
     initDashboard();
@@ -89,10 +88,6 @@ function initConfiguracion() {
       msg.classList.remove('hidden');
       setTimeout(()=> msg.classList.add('hidden'),2000);
     });
-
-  document.getElementById('help-center')
-    .addEventListener('click', ()=> window.open('https://example.com/help','_blank'));
-
   document.getElementById('chat-support')
     .addEventListener('click', ()=> window.open('https://wa.me/50368270392','_blank'));
 
@@ -163,38 +158,135 @@ function initDashboard() {
 // =======================
 // REPORTES
 // =======================
-  // menu izquierdo siempre visible
+// menú izquierdo siempre visible
 function initReportes() {
-    (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display='';})();
+    (function () {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.style.display = '';
+    })();
 
-    (function(){
-      const chartCtx = document.getElementById('report-chart').getContext('2d'); let chart=null;
-      function applyPreset(preset){ const now=new Date(); let from=''; if(preset==='last7'){ const d=new Date(now); d.setDate(d.getDate()-7); from=d.toISOString().slice(0,10);} if(preset==='last30'){const d=new Date(now); d.setDate(d.getDate()-30); from=d.toISOString().slice(0,10);} if(preset==='year'){const d=new Date(now); d.setFullYear(d.getFullYear()-1); from=d.toISOString().slice(0,10);} if(from) document.getElementById('r-from').value=from; document.getElementById('r-to').value=new Date().toISOString().slice(0,10); }
-      document.getElementById('r-preset').addEventListener('change', (e)=>{ if(e.target.value!=='custom') applyPreset(e.target.value); });
-      function generateData(type,from,to){ const start = from ? new Date(from): new Date(new Date().setDate(new Date().getDate()-7)); const end = to ? new Date(to) : new Date(); const days = Math.max(1, Math.round((end-start)/(1000*60*60*24)))+1; const labels=[], values=[]; for(let i=0;i<days;i++){ const d=new Date(start); d.setDate(start.getDate()+i); labels.push(d.toISOString().slice(0,10)); values.push(Math.round(Math.random()*100)); } return {labels,values}; }
-      function renderChart(labels,values,type){ if(chart) chart.destroy(); chart=new Chart(chartCtx,{ type:'bar', data:{labels, datasets:[{label:type,data:values,backgroundColor:'rgba(59,130,246,0.6)'}]}, options:{responsive:true, maintainAspectRatio:false}}); }
-      function renderTablePreview(labels,values){ const el=document.getElementById('report-table'); el.innerHTML = labels.map((lab,i)=>`<div class="grid grid-cols-2 gap-2 py-1 border-b"><div>${lab}</div><div class="font-medium text-right">${values[i]}</div></div>`).join(''); }
-      document.getElementById('gen-report').addEventListener('click', ()=>{ const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const {labels,values}=generateData(type,from,to); renderTablePreview(labels,values); renderChart(labels,values,type); window.__report_preview={labels,values,type}; });
-      document.getElementById('export-report').addEventListener('click', ()=>{
-        const r=window.__report_preview; if(!r){alert('Genera un reporte primero.');return;} 
-        // exporta PDF
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text(`Reporte: ${r.type}`, 10, 10);
-        let y=20;
-        r.labels.forEach((l,i)=>{ doc.text(`${l}: ${r.values[i]}`, 10, y); y+=6; if(y>280){ doc.addPage(); y=20; }});
-        doc.save(`${r.type}_report.pdf`);
-        //exportar Excel (SheetJS)
-        const aoa = [['date','value'], ...r.labels.map((l,i)=>[l, r.values[i]])];
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Report');
-        XLSX.writeFile(wb, `${r.type}_report.xlsx`);
-      });
-      document.getElementById('schedule-report').addEventListener('click', ()=>{
-        const from=document.getElementById('r-from').value; const to=document.getElementById('r-to').value; const type=document.getElementById('r-type').value; const preset=document.getElementById('r-preset').value;
-        const delivery = prompt('Enviar por (email/csv):', 'email') || 'email';
-        const arr=JSON.parse(localStorage.getItem('admin_schedules')||'[]'); arr.push({from,to,type,preset,delivery,ts:Date.now()}); localStorage.setItem('admin_schedules',JSON.stringify(arr)); alert('Reporte programado (demo).');
-      });
+    (function () {
+        const chartCtx = document.getElementById('report-chart').getContext('2d');
+        let chart = null;
+
+        function applyPreset(preset) {
+            const now = new Date();
+            let from = '';
+            if (preset === 'day') { { const d = new Date(now); d.setDate(d.getDate() - 1); from = d.toISOString().slice(0, 10); } }
+            if (preset === 'last7') { const d = new Date(now); d.setDate(d.getDate() - 7); from = d.toISOString().slice(0, 10); }
+            if (preset === 'last30') { const d = new Date(now); d.setDate(d.getDate() - 30); from = d.toISOString().slice(0, 10); }
+            if (preset === 'year') { const d = new Date(now); d.setFullYear(d.getFullYear() - 1); from = d.toISOString().slice(0, 10); }
+
+            if (from) document.getElementById('r-from').value = from;
+            document.getElementById('r-to').value = new Date().toISOString().slice(0, 10);
+        }
+
+        document.getElementById('r-preset').addEventListener('change', (e) => {
+            if (e.target.value !== 'custom') applyPreset(e.target.value);
+        });
+
+        function generateData(type, from, to) {
+            const start = from ? new Date(from) : new Date(new Date().setDate(new Date().getDate() - 7));
+            const end = to ? new Date(to) : new Date();
+            const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24))) + 1;
+
+            const labels = [], values = [];
+            for (let i = 0; i < days; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                labels.push(d.toISOString().slice(0, 10));
+                values.push(Math.round(Math.random() * 100));
+            }
+            return { labels, values };
+        }
+
+        function renderChart(labels, values, type) {
+            if (chart) chart.destroy();
+            chart = new Chart(chartCtx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: type,
+                        data: values,
+                        backgroundColor: 'rgba(59,130,246,0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function renderTablePreview(labels, values) {
+            const el = document.getElementById('report-table');
+            el.innerHTML = labels.map((lab, i) =>
+                `<div class="grid grid-cols-2 gap-2 py-1 border-b">
+                    <div>${lab}</div>
+                    <div class="font-medium text-right">${values[i]}</div>
+                </div>`
+            ).join('');
+        }
+        // Generar reporte en excel
+        document.getElementById('gen-report').addEventListener('click', () => {
+            const from = document.getElementById('r-from').value;
+            const to = document.getElementById('r-to').value;
+            const type = document.getElementById('r-type').value;
+
+            const { labels, values } = generateData(type, from, to);
+
+            renderTablePreview(labels, values);
+            renderChart(labels, values, type);
+
+            window.__report_preview = { labels, values, type };
+        });
+
+        // Exportar pdf + xlsx
+        document.getElementById('export-report').addEventListener('click', () => {
+            const r = window.__report_preview;
+            if (!r) { alert('Genera un reporte primero.'); return; }
+
+            // PDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text(`Reporte: ${r.type}`, 10, 10);
+
+            let y = 20;
+            r.labels.forEach((l, i) => {
+                doc.text(`${l}: ${r.values[i]}`, 10, y);
+                y += 6;
+                if (y > 280) { doc.addPage(); y = 20; }
+            });
+
+            doc.save(`${r.type}_report.pdf`);
+
+            // Excel (SheetJS)
+            const aoa = [['date', 'value'], ...r.labels.map((l, i) => [l, r.values[i]])];
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Report');
+            XLSX.writeFile(wb, `${r.type}_report.xlsx`);
+        });
+        // Boton "Programar" que genera y descarga un archivo Excel con datos de prueba
+        document.getElementById('schedule-report').addEventListener('click', () => {
+
+            // Datos de prueba
+            const datos = [
+                ["ID", "Nombre", "Estado", "Fecha"],
+                [1, "Póliza Hogar", "Activa", "2025-01-02"],
+                [2, "Póliza Auto", "Vencida", "2025-01-03"],
+                [3, "Póliza Vida", "Activa", "2025-01-04"]
+            ];
+
+            // Exportar Excel con datos de prueba
+            const ws = XLSX.utils.aoa_to_sheet(datos);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Programado');
+
+            XLSX.writeFile(wb, `Reporte_Programado.xlsx`);
+        });
+
     })();
 }
 // =======================
