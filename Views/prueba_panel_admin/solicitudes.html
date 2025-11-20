@@ -49,40 +49,6 @@
        </div>
      </main>
    </div>
- 
-   <script>
-     // menu siempre visible
-     (function(){const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
- 
-    // información falsa con tipo de documento, gmail y tiempo de procesamiento (despues conectara con base de datos)
-    const fakeData=[
-      {id:'REQ-001',nombre:'María Pérez',email:'maria@example.com',fecha:'2025-10-01',estado:'pending', docType:'dni', processingTime:45},
-      {id:'REQ-002',nombre:'Juan López',email:'juan@example.com',fecha:'2025-09-21',estado:'approved', docType:'licencia', processingTime:32},
-      {id:'REQ-003',nombre:'Ana Gómez',email:'ana@example.com',fecha:'2025-09-15',estado:'rejected', docType:'pasaporte', processingTime:60},
-      {id:'REQ-004',nombre:'Carlos Ruiz',email:'carlos@example.com',fecha:'2025-10-03',estado:'pending', docType:'dni', processingTime:20}
-    ];
-
-    function matchesFilters(item){
-      const q = (document.getElementById('search').value||'').toLowerCase();
-      if(q && !item.nombre.toLowerCase().includes(q)) return false;
-      return true;
-    }
-
-    function onAction(id, newState){
-      const idx = fakeData.findIndex(x=>x.id===id);
-      if(idx>-1){ fakeData[idx].estado = newState; render(); }
-    }
-
-    function render(){
-      const rows = fakeData.filter(matchesFilters);
-      document.getElementById('table-body').innerHTML = rows.map(r=>`<tr class="border-b hover:bg-gray-50"><td class="py-2">${r.id}</td><td class="py-2">${r.nombre}</td><td class="py-2">${r.email}</td><td class="py-2">${r.fecha}</td><td class="py-2">${r.docType}</td><td class="py-2">${r.estado}</td><td class="py-2">${r.processingTime}</td><td class="py-2"><button data-id="${r.id}" class="approve px-2 py-1 bg-green-600 text-white rounded mr-2">Aprobar</button><button data-id="${r.id}" class="reject px-2 py-1 bg-red-600 text-white rounded">Rechazar</button></td></tr>`).join('');
-      // attach handlers
-      document.querySelectorAll('.approve').forEach(b=> b.addEventListener('click', e=> onAction(e.currentTarget.dataset.id, 'approved')));
-      document.querySelectorAll('.reject').forEach(b=> b.addEventListener('click', e=> onAction(e.currentTarget.dataset.id, 'rejected')));
-    }
-
-    document.getElementById('search').addEventListener('input', render);
-    render();
-  </script>
+    <script src="Admin.js"></script>
 </body>
 </html>

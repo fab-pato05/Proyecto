@@ -93,10 +93,5 @@
 
     </div>
   </main>
-
-  <script>
-    // ocultar descargar si se ejecuta en Electron
-    (function(){ const btn = document.getElementById('btn-download'); if(btn){ const isElectron = navigator.userAgent && navigator.userAgent.toLowerCase().includes('electron'); if(isElectron) btn.style.display='none'; }})();
-  </script>
 </body>
 </html>

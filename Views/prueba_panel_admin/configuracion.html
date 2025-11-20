@@ -102,74 +102,7 @@
 
     </main>
   </div>
+  <script src="Admin.js"></script>
 
-  <script>
-    // cargar/guardar informacion en localStorage
-    const KEY = 'admin_general_config_v1';
-    function loadConfig(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return {}; } }
-    function saveConfig(cfg){ localStorage.setItem(KEY, JSON.stringify(cfg)); }
-
-    function applyToForm(cfg){
-      document.getElementById('cfg-enable-notifications').checked = !!cfg.enableNotifications;
-      document.getElementById('cfg-frequency').value = cfg.frequency || 'daily';
-      document.getElementById('ch-email').checked = !!(cfg.channels && cfg.channels.email);
-      document.getElementById('ch-whatsapp').checked = !!(cfg.channels && cfg.channels.whatsapp);
-      document.getElementById('ch-app').checked = !!(cfg.channels && cfg.channels.app);
-      document.getElementById('ch-sms').checked = !!(cfg.channels && cfg.channels.sms);
-    }
-
-    function readFromForm(){
-      return {
-        enableNotifications: document.getElementById('cfg-enable-notifications').checked,
-        frequency: document.getElementById('cfg-frequency').value,
-        channels: {
-          email: document.getElementById('ch-email').checked,
-          whatsapp: document.getElementById('ch-whatsapp').checked,
-          app: document.getElementById('ch-app').checked,
-          sms: document.getElementById('ch-sms').checked
-        }
-      };
-    }
-
-    function toggleNotificationControls(){
-      const enabled = document.getElementById('cfg-enable-notifications').checked;
-      document.getElementById('cfg-frequency').disabled = !enabled;
-      ['ch-email','ch-whatsapp','ch-app','ch-sms'].forEach(id=> document.getElementById(id).disabled = !enabled);
-    }
-
-    // soporte de almacenamiento
-    function saveReport(text){ const arr = JSON.parse(localStorage.getItem('admin_reports')||'[]'); arr.push({text, ts:Date.now()}); localStorage.setItem('admin_reports', JSON.stringify(arr)); }
-    function saveFeedback(text){ const arr = JSON.parse(localStorage.getItem('admin_feedback')||'[]'); arr.push({text, ts:Date.now()}); localStorage.setItem('admin_feedback', JSON.stringify(arr)); }
-
-    // init
-    (function(){
-      const cfg = loadConfig();
-      applyToForm(cfg);
-      toggleNotificationControls();
-
-      document.getElementById('cfg-enable-notifications').addEventListener('change', ()=> toggleNotificationControls());
-
-      document.getElementById('cfg-save').addEventListener('click', ()=>{
-        const newCfg = readFromForm();
-        saveConfig(newCfg);
-        const msg = document.getElementById('cfg-msg'); msg.classList.remove('hidden'); setTimeout(()=> msg.classList.add('hidden'),2000);
-      });
-
-      // asistente de ayuda
-      document.getElementById('help-center').addEventListener('click', ()=>{ window.open('https://example.com/help','_blank'); });
-      document.getElementById('chat-support').addEventListener('click', ()=>{ window.open('https://wa.me/50368270392','_blank'); });
-      document.getElementById('tutorial').addEventListener('click', ()=>{ window.location.href = 'Tutorial.html'; });
-
-      document.getElementById('submit-report').addEventListener('click', ()=>{
-        const text = document.getElementById('report-text').value.trim(); if(!text){ alert('Describe el problema.'); return; }
-        saveReport(text); document.getElementById('report-text').value=''; alert('Problema reportado.');
-      });
-
-      document.getElementById('submit-feedback').addEventListener('click', ()=>{
-        const text = document.getElementById('feedback-text').value.trim(); if(!text){ alert('Escribe una sugerencia.'); return; }
-        saveFeedback(text); document.getElementById('feedback-text').value=''; alert('Gracias por tu feedback.');
-      });
-    })();
-  </script>
  </body>
  </html>

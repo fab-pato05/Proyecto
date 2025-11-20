@@ -73,39 +73,6 @@
       </div>
     </main>
   </div>
-
-  <script>
-    // menu de izquierda visible
-    (function(){
-      const sidebar = document.getElementById('sidebar');
-      sidebar.style.display = '';
-      try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){}
-    })();
-
-    // Datos de prueba
-    const fakeRequests = [
-      {id:'REQ-001', estado:'pending', processingTime:45, docType:'dni', fecha:'2025-10-01'},
-      {id:'REQ-002', estado:'approved', processingTime:32, docType:'licencia', fecha:'2025-09-21'},
-      {id:'REQ-003', estado:'rejected', processingTime:60, docType:'pasaporte', fecha:'2025-09-15'},
-      {id:'REQ-004', estado:'pending', processingTime:20, docType:'dni', fecha:'2025-10-03'}
-    ];
-    const fakeActivity = ['Usuario REQ-004 subió documento','Solicitud REQ-002 aprobada','Informe generado: 2025-10-03'];
-
-    // KPIs
-    const total = fakeRequests.length;
-    const approved = fakeRequests.filter(r=>r.estado==='approved').length;
-    const rejected = fakeRequests.filter(r=>r.estado==='rejected').length;
-    const pending = fakeRequests.filter(r=>r.estado==='pending').length;
-    const successRate = Math.round((approved/total)*100);
-    const avgTime = Math.round(fakeRequests.reduce((s,r)=>s+r.processingTime,0)/total);
-
-    document.getElementById('kpi-success').textContent = successRate + '%';
-    document.getElementById('kpi-fails').textContent = rejected;
-    document.getElementById('kpi-avgtime').textContent = avgTime;
-    document.getElementById('stat-pending').textContent = pending;
-    document.getElementById('stat-approved').textContent = approved;
-    document.getElementById('stat-rejected').textContent = rejected;
-    document.getElementById('activity').innerHTML = fakeActivity.map(a=>`<li class="bg-gray-50 p-2 rounded">${a}</li>`).join('');
-  </script>
+<script src="Admin.js" defer></script>
 </body>
 </html>

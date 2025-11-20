@@ -43,13 +43,6 @@
       </div>
     </main>
   </div>
-
-  <script>
-    // mwnu siempre visible
-    (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
-
-    const fakeResults=[{id:'RES-001',request:'REQ-002',score:0.92,summary:'Coincidencia alta'},{id:'RES-002',request:'REQ-001',score:0.45,summary:'Coincidencia baja - revisar'}];
-    document.getElementById('results-list').innerHTML = fakeResults.map(r=> `<div class="bg-gray-50 p-3 rounded"><div class="font-medium">${r.id} — ${r.request}</div><div class="text-xs text-gray-600">Score: ${r.score} — ${r.summary}</div></div>`).join('');
-  </script>
+  <script src="admin.js"></script>
 </body>
 </html>
