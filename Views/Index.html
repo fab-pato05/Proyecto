@@ -219,28 +219,7 @@
 
   <!-- Scripts limpios: una inclusión de feather-icons, init al DOM ready y carga del módulo main -->
   <script src="https://unpkg.com/feather-icons"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      if (window.feather) {
-        feather.replace();
-      }
-      const yearEl = document.getElementById('year');
-      if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-      // Ocultar botón "Descargar" dentro de Electron
-      (function() {
-        const isElectron = navigator.userAgent.toLowerCase().includes('electron');
-        const btn = document.getElementById('btn-descargar');
-        if (isElectron && btn) {
-          btn.style.display = 'none';
-          btn.setAttribute('aria-hidden', 'true');
-          btn.setAttribute('tabindex', '-1');
-          btn.addEventListener('click', e => e.preventDefault());
-        }
-      })();
-    });
-  </script>
-
+  <script src="Js/index.js"></script>
   <script type="module" src="./Js/main.js"></script>
 </body>
 </html>

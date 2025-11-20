@@ -48,17 +48,9 @@
   </main>
 
   <script>
-    // cargar beneficiarios desde localStorage (demo)
-    (function(){
-      const listaEl = document.getElementById('lista');
-      const user = JSON.parse(localStorage.getItem('usuario')) || {};
-      const beneficiaries = (user.beneficiarios) || [];
-      if(!beneficiaries.length){
-        listaEl.innerHTML = '<p class="text-gray-500">No hay beneficiarios registrados.</p>';
-        return;
-      }
-      listaEl.innerHTML = beneficiaries.map(b=>`<li class="flex items-center justify-between bg-gray-50 p-3 rounded"><div><p class="font-medium">${b.nombre}</p><p class="text-sm text-gray-500">${b.parentesco} • ${b.cedula || ''}</p></div><div class="text-sm text-gray-600">${b.porcentaje || '0%'} </div></li>`).join('');
-    })();
+    // Incluir el archivo poliza.js
+    </script>
+    <script src="Js/poliza.js"></script>
   </script>
 </body>
 </html>
