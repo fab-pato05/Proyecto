@@ -19,7 +19,8 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-
+// ===== SENDGRID - NOTIFICACIONES =====
+import sgMail from "@sendgrid/mail";
 
 const { Pool } = pkg;
 dotenv.config();
@@ -29,13 +30,35 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(process.cwd(), "Views")));
-const PORT = Number(process.env.PORT || 5432);
+const PORT = Number(process.env.PORT || 3000);
 
 app.use(cors({
     origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"]
 }));
+
+// ===== Helmet + rate limit + middlewares =====
+app.use(helmet({
+    contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+            "script-src": ["'self'", "https://cdn.tailwindcss.com", "https://unpkg.com"],
+            "style-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            "img-src": ["'self'", "data:", "blob:"]
+        }
+    }
+}));
+app.set('trust proxy', 1);
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
+app.use(limiter); 
+
+// ===== Static folders =====
+app.use("/js", express.static(path.join(process.cwd(), "Views/Js")));
+app.use("/img", express.static(path.join(process.cwd(), "Views/img")));
+app.use("/css", express.static(path.join(process.cwd(), "Views/css")));
+app.use("/models", express.static(path.join(process.cwd(), "models")));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // === ENCRIPTACIÓN AES-256 ===
 const ALGORITHM = "aes-256-cbc";
@@ -59,28 +82,6 @@ function decryptBuffer(base64Data, ivHex) {
     const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv);
     return Buffer.concat([decipher.update(encryptedBuffer), decipher.final()]);
 }
-
-// ===== Helmet + rate limit + middlewares =====
-app.use(helmet({
-    contentSecurityPolicy: {
-        useDefaults: true,
-        directives: {
-            "script-src": ["'self'", "https://cdn.tailwindcss.com", "https://unpkg.com"],
-            "style-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-            "img-src": ["'self'", "data:", "blob:"]
-        }
-    }
-}));
-app.set('trust proxy', 1);
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
-
-
-// ===== Static folders =====
-app.use("/js", express.static(path.join(process.cwd(), "Views/Js")));
-app.use("/img", express.static(path.join(process.cwd(), "Views/img")));
-app.use("/css", express.static(path.join(process.cwd(), "Views/css")));
-app.use("/models", express.static(path.join(process.cwd(), "models")));
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // ===== CONEXIÓN A NEON (PostgreSQL) =====
 const pool = new Pool({
@@ -125,11 +126,13 @@ async function conectarRedis() {
 }
 
 // ===== AWS REKOGNITION (usando SDK v3 para consistencia) =====
-const rekognitionClient = process.env.AWS_REGION ? new RekognitionClient({ region: process.env.AWS_REGION }) : null;
+const rekognitionClient = process.env.AWS_REGION ? 
+                    new RekognitionClient({ region: process.env.AWS_REGION }) : null;
 
-// Configurar ruta de ffprobe
-const FFPROBE_PATH = process.env.FFPROBE_PATH || "C:/Users/marjorie.guzman/Downloads/ffmpeg/ffmpeg-8.0-essentials_build/bin";
-ffmpeg.setFfprobePath(FFPROBE_PATH)
+// Configuración de ffprobe/ffmpeg [cite: 268]
+const localFFprobeFolder = process.env.FFMPEG_BIN_PATH || 'C:/Users/marjorie.guzman/Downloads/ffmpeg/ffmpeg-8.0-essentials_build/bin'; // Se usa una variable de entorno o el path local.
+process.env.FFPROBE_PATH = path.join(localFFprobeFolder, "ffprobe.exe"); // [cite: 268]
+ffmpeg.setFfprobePath(process.env.FFPROBE_PATH); // [cite: 268]
 
 // ===== MULTER - UPLOAD FILES =====
 const storage = multer.diskStorage({
@@ -155,6 +158,17 @@ const upload = multer({
 });
 
 // ===== NODEMAILER =====
+if (process.env.SENDGRID_API_KEY) sgMail.setApiKey(process.env.SENDGRID_API_KEY); // [cite: 222, 334]
+async function enviarCorreoNotificacion(to, subject, html) {
+    if (!process.env.FROM_EMAIL) return console.error("❌ FROM_EMAIL no configurado."); // [cite: 223, 335]
+    const msg = { to, from: process.env.FROM_EMAIL, subject, html }; // [cite: 335]
+    try {
+        await sgMail.send(msg); // [cite: 224, 336]
+        console.log("📨 Correo enviado a:", to); // [cite: 224, 336]
+    } catch (err) {
+        console.error("❌ Error enviando correo:", err.response?.body || err); // [cite: 225, 337]
+    }
+}
 let transporter = null;
 if (process.env.SMTP_HOST && process.env.SMTP_USER) {
     transporter = nodemailer.createTransport({
@@ -170,12 +184,49 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER) {
     });
 }
 
-// ===== UTILIDADES =====
+// ===== FUNCIONES AUXILIARES =====
 function safeUnlink(p) {
     try { if (p && fs.existsSync(p)) fs.unlinkSync(p); } catch (e) { /* ignore */ }
 }
 function nowISO() { return new Date().toISOString(); }
+// LIMPIEZA OCR
+function limpiarTextoOCR(textoCrudo) { // [cite: 213]
+    let textoLimpio = textoCrudo.replace(/[|:;—]/g, ' '); // [cite: 214]
+    textoLimpio = textoLimpio.replace(/[.,]/g, ''); // [cite: 214]
+    textoLimpio = textoLimpio.replace(/[\[\]]/g, ' '); // [cite: 214]
+    textoLimpio = textoLimpio.replace(/^[£A]/g, ''); // [cite: 214]
+    textoLimpio = textoLimpio.replace(/\s+/g, ' '); // [cite: 214]
+    return textoLimpio.trim(); // [cite: 215]
+}
 
+
+// EXTRAER IDENTIFICADOR
+function extraerIdentificadorDesdeOCR(ocrText) { // [cite: 215, 339]
+    if (!ocrText) return null; // [cite: 215, 339]
+    const t = ocrText.replace(/\s+/g, ' '); // [cite: 216, 340]
+    // DUI
+    const duiMatch = t.match(/\b(\d{8}-\d)\b/); // [cite: 216, 341]
+    if (duiMatch) return { tipo: 'DUI', valor: duiMatch[0] }; // [cite: 216, 341]
+    // Pasaporte
+    const pasaporteMatch = t.match(/\b([A-Z0-9]{6,9})\b/); // [cite: 217, 342]
+    if (pasaporteMatch) return { tipo: 'Pasaporte', valor: pasaporteMatch[0] }; // [cite: 217, 342]
+    return null; // [cite: 217, 343]
+}
+
+
+// JWT AUTH
+function authenticateJWT(req, res, next) { // [cite: 218]
+    const authHeader = req.headers.authorization; // [cite: 218]
+    if (authHeader) { // [cite: 219]
+        const token = authHeader.split(' ')[1]; // [cite: 219]
+        if (!process.env.JWT_SECRET) return res.status(500).json({ ok: false, message: 'Error interno JWT.' }); // [cite: 220]
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => { // [cite: 221]
+            if (err) return res.status(403).json({ ok: false, message: 'Token inválido o expirado.' }); // [cite: 221]
+            req.user = user; // [cite: 221]
+            next(); // [cite: 221]
+        });
+    } else res.status(401).json({ ok: false, message: 'Acceso denegado. Token requerido.' }); // [cite: 222]
+}
 // ===== FUNCIONES DE PROCESAMIENTO =====
 
 // PROCESAR DOCUMENTO (MEJORA IMAGEN)
@@ -185,7 +236,7 @@ async function procesarDocumento(entrada, salida) {
             .rotate()
             .resize(1200)
             .normalize()
-            .sharpen()
+            .greyscale()
             .toFile(salida);
         return salida;
     } catch (error) {
@@ -201,162 +252,118 @@ async function realizarOCR(rutaImagen) {
         console.warn("⚠️ Archivo no encontrado para OCR:", rutaImagen);
         return "";
     }
-
+    const worker = createWorker();
     try {
-        // 2️⃣ Inicializar worker correctamente
-        const worker = await createWorker('spa');
-        // 3️⃣ Reconocer texto
+        await worker.load();
+        await worker.loadLanguage("spa"); 
+        await worker.initialize("spa");
+
         const { data: { text } } = await worker.recognize(rutaImagen);
         console.log("OCR resultado:", text);
-        // 4️⃣ Terminar worker aunque falle
-        await worker.terminate();
-        return data.text || "";
-
+        return text || "";
     } catch (err) {
         console.error("Error OCR: ", err);
         return "";
+    } finally {
+        try { await worker.terminate(); } catch (e) { /* ignore */ }
     }
 }
 
-
-//extraer el identificar del documento 
-function extraerIdentificadorDesdeOCR(ocrText) {
-    if (!ocrText) return null;
-    const text = ocrText.toUpperCase();
-    //DUI EL SALVADOR: 00000000-0
-    const matchDUI = text.match(/\b[0O]\d{7}-\d\b/);
-    if (matchDUI) return matchDUI[0];
-    //PASAPORTE: LETRAS + NUMEROS 
-    const macthPasaporte = text.match(/\b[A-Z]{1,2}\d{6,9}\b/);
-    if (macthPasaporte) return macthPasaporte[0];
-    return null;
-}
-// DETECCIÓN TIPO DE DOCUMENTO
-function detectarTipoDocumento(textoOCR) {
-    const texto = textoOCR.toUpperCase();
-
-    if (/(PASAPORTE| PASSPORT|PASAPORT)/.test(texto)) {
-        return "PASAPORTE";
-    }
-    if (/\b\d{8}-\d\b/.test(texto)) {
-        return "DUI";
-    }
-    // Buscar frases comunes en documentos nacionales
-    if (/\b\d{8}-\d\b/.test(texto) || /\b[0O]\d{7}-\d\b/.test(texto)) return "DUI";
-    if (/(IDENTIDAD|REPUBLICA|EL SALVADOR|NACIONAL)/.test(texto)) {
-        return "DUI";
-    }
-    return "DESCONOCIDO";
-}
-
-// COMPARACIÓN FACIAL AWS (usando SDK v3)
-// Comparar rostros (documento vs selfie/frame)
-async function compararRostros(docBuffer, selfieBuffer, threshold = 80) {
-    if (!rekognitionClient) return { ok: false, similarity: 0 };
-
-    const command = new CompareFacesCommand({
-        SourceImage: { Bytes: docBuffer },
-        TargetImage: { Bytes: selfieBuffer },
-        SimilarityThreshold: threshold
-    });
-
+async function compararRostros(docBuffer, selfieBuffer, threshold = 80) { // [cite: 238, 282]
+    if (!rekognitionClient) return { ok: false, similarity: 0 }; // [cite: 282]
+    const params = { SourceImage: { Bytes: docBuffer }, TargetImage: { Bytes: selfieBuffer }, SimilarityThreshold: threshold }; // Se usa el doc buffer/selfie buffer [cite: 238, 283]
+    const command = new CompareFacesCommand(params); // [cite: 239, 283]
     try {
-        const result = await rekognitionClient.send(command);
-        if (result.FaceMatches && result.FaceMatches.length > 0) {
-            const similarity = result.FaceMatches[0].Similarity;
-            return { ok: similarity >= threshold, similarity };
+        const response = await rekognitionClient.send(command); // [cite: 239, 284]
+        if (response.FaceMatches && response.FaceMatches.length > 0) { // [cite: 239, 285]
+            const similarity = response.FaceMatches[0].Similarity; // [cite: 286]
+            return { ok: similarity >= threshold, similarity }; // [cite: 239, 286]
         }
-        return { ok: false, similarity: 0 };
+        return { ok: false, similarity: 0 }; // [cite: 240, 287]
     } catch (err) {
-        console.error("❌ Error compararRostros:", err);
-        return { ok: false, similarity: 0 };
-    }
-}
-// COMPARAR VIDEOS
-async function compararVideos(video1, video2) {
-    try {
-        ffmpeg.ffprobe(video1, (err, metadata) => {
-            if (err) console.error("Error ffprobe:", err);
-            else console.log("Metadata video1:", metadata);
-        });
-
-        const command = new CompareFacesCommand({
-            SourceImage: { Bytes: fs.readFileSync(video1) },
-            TargetImage: { Bytes: fs.readFileSync(video2) },
-            SimilarityThreshold: 80
-        });
-
-        const response = await rekognitionClient.send(command);
-        console.log("Resultado comparación facial:", response);
-        return response;
-    } catch (err) {
-        console.error("Error comparación facial:", err);
-        return null;
+        console.error("❌ Error compararRostros:", err); // [cite: 287]
+        return { ok: false, similarity: 0 }; // [cite: 288]
     }
 }
 
 // EXTRAER FRAME DE VIDEO
-function extraerFrameVideo(videoPath) {
+function extraerFrameVideo(videoPath) { // [cite: 293]
     return new Promise((resolve, reject) => {
-        const tempPng = path.join(path.dirname(videoPath), `${uuidv4()}.png`);
+        const tempPng = path.join(path.dirname(videoPath), `${uuidv4()}.png`); // [cite: 293]
         ffmpeg(videoPath)
-            .screenshots({ timestamps: ['50%'], filename: path.basename(tempPng), folder: path.dirname(tempPng) })
+            .screenshots({ timestamps: ['50%'], filename: path.basename(tempPng), folder: path.dirname(tempPng) }) // [cite: 294]
             .on('end', () => {
                 fs.readFile(tempPng, (err, data) => {
-                    if (err) return reject(err);
-                    safeUnlink(tempPng);
+                    if (err) return reject(err); // [cite: 294]
+                    safeUnlink(tempPng); // [cite: 294]
                     resolve(data);
                 });
             })
             .on('error', (err) => {
-                safeUnlink(tempPng);
+                safeUnlink(tempPng); // [cite: 295]
                 reject(err);
-            });
-    });
+            }); // [cite: 295]
+    }); // [cite: 296]
 }
 
-// EXTRAER ROSTRO DEL DOCUMENTO
-async function extraerRostroDocumento(docPath) {
-    const image = sharp(docPath);
-    const metadata = await image.metadata();
-    const width = Math.max(100, Math.floor((metadata.width || 400) * 0.3));
-    const height = Math.max(100, Math.floor((metadata.height || 400) * 0.45));
-    const left = Math.max(0, Math.floor((metadata.width || 400) * 0.35));
-    const top = Math.max(0, Math.floor((metadata.height || 400) * 0.18));
-    return await image.extract({ left, top, width, height }).toBuffer();
+// EXTRAER ROSTRO DEL DOCUMENTO (Se usa lógica de crop basada en porcentajes, típica para documentos)
+async function extraerRostroDocumento(docPath) { // [cite: 296]
+    const image = sharp(docPath); // [cite: 297]
+    const metadata = await image.metadata(); // [cite: 297]
+    const width = Math.max(100, Math.floor((metadata.width || 400) * 0.3)); // [cite: 297]
+    const height = Math.max(100, Math.floor((metadata.height || 400) * 0.45)); // [cite: 298]
+    const left = Math.max(0, Math.floor((metadata.width || 400) * 0.35)); // [cite: 298]
+    const top = Math.max(0, Math.floor((metadata.height || 400) * 0.18)); // [cite: 299]
+    return await image.extract({ left, top, width, height }).toBuffer(); // [cite: 299]
 }
-
 // VERIFICAR DOCUMENTO
 async function verificarDocumento(imagenPath) {
-    const worker = await createWorker();
-    await worker.loadLanguage("spa");
-    await worker.initialize("spa");
-    const { data: { text } } = await worker.recognize(imagenPath);
-    await worker.terminate();
+    const worker = createWorker();
+    try {
+        await worker.load();
+        await worker.loadLanguage("spa");
+        await worker.initialize("spa");
 
-    const texto = text.toLowerCase();
-    const palabrasClave = ["dui", "pasaporte", "republica", "nombre"];
-
-    return palabrasClave.some(p => texto.includes(p));
+        const { data: { text } } = await worker.recognize(imagenPath);
+        const texto = (text || "").toLowerCase();
+        const palabrasClave = ["dui", "pasaporte", "republica", "nombre"];
+        return palabrasClave.some(p => texto.includes(p));
+    } catch (err) {
+        console.error("Error verificarDocumento:", err);
+        return false;
+    } finally {
+        try { await worker.terminate(); } catch (e) { }
+    }
 }
 
-// GUARDAR VERIFICACIÓN
+// GUARDAR VERIFICACIÓN - Corregida para incluir 'acciones' y 13 parámetros
 async function guardarVerificacion({
-    user_id = null, ocrText = null, similarityScore = null, match_result = false,
-    liveness = false, edad_valida = null, documento_path = null, selfie_paths = null,
-    ip = null, dispositivo = null, acciones = null, resultado_general = null, notificado = false
+    user_id = null, 
+    ocrText = null, 
+    similarityScore = null, 
+    match_result = false,
+    liveness = false, 
+    edad_valida = null, 
+    documento_path = null, 
+    selfie_paths = null,
+    ip = null, 
+    dispositivo = null, 
+    resultado_general = null, 
+    notificado = false
 }) {
     const q = `
         INSERT INTO verificacion_biometrica
-        (user_id, dui_text, score, match_result, liveness, edad_valida, documento_path, selfie_paths, ip_usuario, dispositivo, resultado_general, notificado, created_at)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, now())
+        (user_id, dui_text, score, match_result, liveness, edad_valida, documento_path, selfie_paths, ip_usuario, dispositivo, acciones, resultado_general, notificado, created_at)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, now()) 
         RETURNING id;
     `;
-    const vals = [
+    const vals = [ // ¡13 valores para $1 - $13!
         user_id, ocrText, similarityScore, match_result, liveness, edad_valida,
         documento_path, selfie_paths ? JSON.stringify(selfie_paths) : null,
         ip, dispositivo ? JSON.stringify(dispositivo) : null,
-        resultado_general, notificado
+        acciones ? JSON.stringify(acciones) : null, // $11
+        resultado_general, // $12
+        notificado // $13
     ];
 
     try {
@@ -372,146 +379,179 @@ async function guardarVerificacion({
 // Página principal
 app.get('/', (req, res) => res.sendFile(path.join(process.cwd(), 'Views/Index.html')));
 
-// GUARDAR REFERENCIA 
-app.post("/guardar-referencia", async (req, res) => {
+// 🔐 LOGIN
+app.post('/login', async (req, res) => { // [cite: 226, 320]
+    try {
+        const { correo, contrasena } = req.body;
+        const resultado = await pool.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
+        // Se usa la respuesta JSON del primer código para consistencia de API [cite: 227]
+        if (resultado.rows.length === 0) return res.status(404).json({ ok: false, message: "Usuario no encontrado" }); // [cite: 227, 320]
+        const usuario = resultado.rows[0];
+        const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena); // [cite: 227, 320]
+
+        if (!passwordValida) return res.status(401).json({ ok: false, message: "Contraseña incorrecta" }); // [cite: 227]
+
+        let token = null;
+        if (process.env.JWT_SECRET) {
+            token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '2h' }); // [cite: 321]
+        }
+
+        return res.json({ ok: true, token, redirect: "/Views/cotizador.html", user_id: usuario.id }); // [cite: 227]
+    } catch (error) {
+        console.error(error); // [cite: 228, 323]
+        res.status(500).json({ ok: false, message: "Error en el inicio de sesión" }); // Se usa la respuesta JSON [cite: 228, 323]
+    }
+});
+
+// 👤 REGISTRAR USUARIO
+app.post('/guardar-registerForm', async (req, res) => { // [cite: 317]
+    try {
+        const { nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, contrasena } = req.body;
+        if (!correo || !contrasena) return res.status(400).json({ ok: false, message: 'correo y contraseña son requeridos' }); // [cite: 317]
+        const hashedPassword = await bcrypt.hash(contrasena, 10); // [cite: 317]
+        const query = `
+            INSERT INTO usuarios
+            (nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numerodocumento, contrasena)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id;
+        `; // [cite: 318]
+        const values = [nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, hashedPassword]; // [cite: 318]
+        const r = await pool.query(query, values); // [cite: 318]
+        res.status(200).json({ ok: true, id: r.rows[0].id }); // [cite: 318]
+    } catch (error) {
+        console.error("❌ Error al registrar usuario:", error); // [cite: 319]
+        res.status(500).json({ ok: false, message: "Error al registrar usuario" }); // [cite: 319]
+    }
+});
+
+
+// 📄 GUARDAR CONTRATACIÓN
+app.post('/guardar-contratacion', authenticateJWT, async (req, res) => { // Se mantiene el JWT auth de la primera versión [cite: 229]
+    try {
+        const usuario_id = req.user.id; // Se usa el ID del token [cite: 229]
+        const { nombre_completo, correo, celular } = req.body;
+        const usuarioExiste = await pool.query('SELECT * FROM usuarios WHERE id=$1', [usuario_id]);
+        if (usuarioExiste.rows.length === 0) return res.status(404).json({ ok: false, message: 'Usuario no existe' }); // Se usa respuesta JSON [cite: 229, 332]
+        await pool.query(`INSERT INTO contrataciones (usuario_id, nombre_completo, correo, celular) VALUES($1,$2,$3,$4)`, [usuario_id, nombre_completo, correo, celular]); // [cite: 230, 333]
+        res.json({ ok: true, message: 'Contratación registrada correctamente' }); // Se usa respuesta JSON [cite: 230, 333]
+    } catch (err) {
+        console.error(err); // [cite: 230, 333]
+        res.status(500).json({ ok: false, message: 'Error al registrar contratación' }); // Se usa respuesta JSON [cite: 230, 333]
+    }
+});
+
+
+// 💰 GUARDAR COTIZACIÓN
+app.post('/guardar-cotizacionForm', async (req, res) => { // [cite: 323]
+    try {
+        const { id, monto_asegurar, cesion_beneficios, poliza } = req.body; // [cite: 323]
+        if (!id) return res.status(400).json({ ok: false, message: 'id de usuario requerido' }); // [cite: 324]
+        const usuarioRes = await pool.query("SELECT nombres, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]); // [cite: 324]
+        if (usuarioRes.rows.length === 0) return res.status(404).json({ ok: false, message: 'Usuario no encontrado' }); // [cite: 324]
+        const usuario = usuarioRes.rows[0]; // [cite: 324]
+        const insertQuery = `
+            INSERT INTO formulariocotizacion
+            (usuario_id, nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+            RETURNING *;
+        `; // [cite: 325]
+        const values = [id, usuario.nombres || '', usuario.apellidos || '', '', usuario.celular || '', usuario.correo || '', monto_asegurar, cesion_beneficios, poliza]; // [cite: 325]
+        const result = await pool.query(insertQuery, values); // 
+
+        if (transporter) { // 
+            await transporter.sendMail({
+                from: process.env.SMTP_FROM || process.env.EMAIL_USER,
+                to: usuario.correo,
+                subject: 'Cotización Registrada',
+                html: `<h2>Hola ${usuario.nombres || ''},</h2><p>Tu cotización ha sido registrada correctamente:</p><ul><li>Monto a asegurar: $${monto_asegurar}</li><li>Cesión de beneficios: ${cesion_beneficios}</li><li>Póliza: ${poliza}</li></ul>` // [cite: 327, 328]
+            }); // [cite: 329]
+        }
+
+        res.json({ ok: true, message: 'Cotización guardada y correo enviado (si configurado)', data: result.rows[0] }); // [cite: 329]
+    } catch (err) {
+        console.error(err); // [cite: 330, 331]
+        res.status(500).json({ ok: false, message: 'Error al guardar cotización o enviar correo' }); // [cite: 331]
+    }
+});
+
+
+// 💾 GUARDAR REFERENCIA (REDIS)
+app.post("/guardar-referencia", async (req, res) => { // [cite: 315]
     try {
         const { usuario_id, imagen_base64 } = req.body;
-        if (!usuario_id || !imagen_base64) {
-            return res.json({ ok: false, mensaje: "Falta de datos" });
-        }
+        if (!usuario_id || !imagen_base64) { return res.json({ ok: false, mensaje: "Falta de datos" }); } // [cite: 315]
 
-        if (!redisClient.isReady) {
-            return res.json({ ok: false, mensaje: "Servicio temporal no disponible" });
-        }
+        await conectarRedis(); // Se asegura la conexión
 
-        await redisClient.setEx(`REF:${usuario_id}`, 300, imagen_base64);
-        return res.json({ ok: true, mensaje: "Rostro de referencia guardado temporalmente" });
+        if (!redisClient.isOpen) { return res.json({ ok: false, mensaje: "Servicio temporal no disponible" }); } // [cite: 316]
+
+        // Expira en 300 segundos (5 minutos) [cite: 316]
+        await redisClient.setEx(`REF:${usuario_id}`, 300, imagen_base64); // [cite: 316]
+        return res.json({ ok: true, mensaje: "Rostro de referencia guardado temporalmente" }); // [cite: 316]
     } catch (err) {
         console.error("Error guardando en Redis:", err);
         return res.status(500).json({ ok: false, mensaje: "Error al guardar referencia" });
     }
 });
 
-// REGISTRAR USUARIO
-app.post('/guardar-registerForm', async (req, res) => {
-    try {
-        const { nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, contrasena } = req.body;
-        if (!correo || !contrasena) return res.status(400).json({ ok: false, message: 'correo y contraseña son requeridos' });
-        const hashedPassword = await bcrypt.hash(contrasena, 10);
-        const query = `
-            INSERT INTO usuarios
-            (nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numerodocumento, contrasena)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id;
-        `;
-        const values = [nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, hashedPassword];
-        const r = await pool.query(query, values);
-        res.status(200).json({ ok: true, id: r.rows[0].id });
-    } catch (error) {
-        console.error("❌ Error al registrar usuario:", error);
-        res.status(500).json({ ok: false, message: "Error al registrar usuario" });
+// Inicializar SendGrid
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+// Función para enviar correo
+async function enviarCorreoNotificacion(to, subject, html) {
+    if (!process.env.FROM_EMAIL) {
+        console.error("❌ FROM_EMAIL no configurado en .env");
+        return;
     }
-});
 
-// INICIO DE SESIÓN
-app.post('/login', async (req, res) => {
+    const msg = {
+        to,
+        from: process.env.FROM_EMAIL,
+        subject,
+        html,
+    };
+
     try {
-        const { correo, contrasena } = req.body;
-        const resultado = await pool.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
-        if (resultado.rows.length === 0) return res.status(404).send("❌ Usuario no encontrado");
-        const usuario = resultado.rows[0];
-        const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena);
-        if (passwordValida) {
-            if (process.env.JWT_SECRET) {
-                const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '2h' });
-                return res.json({ ok: true, token, redirect: "/Views/cotizador.html" });
-            }
-            return res.send("/Views/cotizador.html");
-        } else {
-            return res.send("❌ Contraseña incorrecta");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error en el inicio de sesión");
-    }
-});
-
-// GUARDAR COTIZACIÓN
-app.post('/guardar-cotizacionForm', async (req, res) => {
-    try {
-        const { id, monto_asegurar, cesion_beneficios, poliza } = req.body;
-        if (!id) return res.status(400).json({ ok: false, message: 'id de usuario requerido' });
-        const usuarioRes = await pool.query("SELECT nombres, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]);
-        if (usuarioRes.rows.length === 0) return res.status(404).json({ ok: false, message: 'Usuario no encontrado' });
-        const usuario = usuarioRes.rows[0];
-        const insertQuery = `
-            INSERT INTO formulariocotizacion
-            (usuario_id, nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-            RETURNING *;
-        `;
-        const values = [id, usuario.nombres || '', usuario.apellidos || '', '', usuario.celular || '', usuario.correo || '', monto_asegurar, cesion_beneficios, poliza];
-        const result = await pool.query(insertQuery, values);
-
-        if (transporter) {
-            await transporter.sendMail({
-                from: process.env.SMTP_FROM || process.env.EMAIL_USER,
-                to: usuario.correo,
-                subject: 'Cotización Registrada',
-                html: `<h2>Hola ${usuario.nombres || ''},</h2>
-                    <p>Tu cotización ha sido registrada correctamente:</p>
-                    <ul>
-                        <li>Monto a asegurar: $${monto_asegurar}</li>
-                        <li>Cesión de beneficios: ${cesion_beneficios}</li>
-                        <li>Póliza: ${poliza}</li>
-                    </ul>`
-            });
-        }
-
-        res.json({ ok: true, message: 'Cotización guardada y correo enviado (si configurado)', data: result.rows[0] });
+        await sgMail.send(msg);
+        console.log("📨 Correo enviado a:", to);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ ok: false, message: 'Error al guardar cotización o enviar correo' });
+        console.error("❌ Error enviando correo:", err);
     }
-});
-
-
-// Guardar contratación
-app.post('/guardar-contratacion', async (req, res) => {
-    try {
-        const { usuario_id, nombre_completo, correo, celular } = req.body;
-        const usuarioExiste = await pool.query('SELECT * FROM usuarios WHERE id=$1', [usuario_id]);
-        if (usuarioExiste.rows.length === 0) return res.send('❌ Usuario no existe');
-        await pool.query(`INSERT INTO contrataciones (
-            usuario_id,
-            nombre_completo,
-            correo,celular) 
-            VALUES($1,$2,$3,$4)`,
-            [usuario_id, nombre_completo, correo, celular]);
-        res.send('✅ Contratación registrada correctamente');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Error al registrar contratación');
-    }
-});
+}
+function extraerIdentificadorDesdeOCR(ocrText) { // <--- ESTA FUNCIÓN TAMBIÉN
+    // Implementación simple de ejemplo: buscar patrón de DUI (########-#) o pasaporte (alfanumérico)
+    if (!ocrText) return null;
+    const t = ocrText.replace(/\s+/g, ' ');
+    // buscar DUI estilo salvadoreño (8 dígitos guion 1 dígito)
+    const duiMatch = t.match(/\b(\d{8}-\d)\b/);
+    if (duiMatch) return { tipo: 'DUI', valor: duiMatch[0] };
+    // buscar patrón de pasaporte (al menos 6-9 alfanum)
+    const pasaporteMatch = t.match(/\b([A-Z0-9]{6,9})\b/);
+    if (pasaporteMatch) return { tipo: 'Pasaporte', valor: pasaporteMatch[0] };
+    return null;
+}
 
 
 
-const router = express.Router();
-
-const MAX_INTENTOS = 5;          // 🔒 Límite de intentos por usuario
-const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
-
-router.post('/verificar-identidad', upload.fields([
+app.post('/verificar-identidad', upload.fields([
     { name: 'doc', maxCount: 1 },
     { name: 'video', maxCount: 1 }
 ]), async (req, res) => {
 
     const tmpFilesToRemove = [];
     let tipoDocumentoDetectado = "DESCONOCIDO";
+    let rostroCoincide = false; // Inicializado para evitar problemas de alcance
+    let similarityScore = null; // Inicializado para evitar problemas de alcance
+    let correo_usuario = null;
+    let nombre_usuario = null;
+    let verificationId = null;
+    const MAX_INTENTOS = 5;          // 🔒 Límite de intentos por usuario
+const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
 
     try {
         // =========================================================
-        // 🔹 1. VALIDAR ID DE USUARIO Y LÍMITE DE INTENTOS (REDIS)
+        //  1. VALIDAR ID DE USUARIO Y LÍMITE DE INTENTOS (REDIS)
         // =========================================================
         const userId = req.body.user_id;
         if (!userId) {
@@ -520,7 +560,7 @@ router.post('/verificar-identidad', upload.fields([
 
         await conectarRedis();
 
-const key = `INTENTOS:${userId}`;
+        const key = `INTENTOS:${userId}`;
 
         let intentos = await redisClient.get(key);
         intentos = intentos ? parseInt(intentos) : 0;
@@ -532,25 +572,29 @@ const key = `INTENTOS:${userId}`;
             });
         }
 
+        // Obtener datos del usuario para notificaciones
+        const userRes = await pool.query("SELECT id, nombres, apellidos, correo FROM usuarios WHERE id = $1", [userId]);
+        if (userRes.rows.length > 0) {
+            correo_usuario = userRes.rows[0].correo;
+            nombre_usuario = `${userRes.rows[0].nombres || ''} ${userRes.rows[0].apellidos || ''}`.trim();
+        } else {
+            return res.status(404).json({ exito: false, mensaje: "Usuario no encontrado" });
+        }
+
         // =========================================================
-        // 🔹 2. VALIDACIÓN INICIAL DEL DOCUMENTO
+        //  2. VALIDACIÓN INICIAL DEL DOCUMENTO (Se omite código por brevedad)
         // =========================================================
         if (!req.files?.doc?.[0]) {
             return res.status(400).json({ exito: false, mensaje: 'Documento no enviado' });
         }
-
         const docFile = req.files.doc[0];
         const docPath = docFile.path;
         tmpFilesToRemove.push(docPath);
 
-        // =========================================================
-        // 🔹 3. PROCESAR DOCUMENTO (rotar, limpiar, etc.)
-        // =========================================================
+        // 3. PROCESAR DOCUMENTO
         const processedDocPath = path.join(path.dirname(docPath), `proc_${uuidv4()}.png`);
         await procesarDocumento(docPath, processedDocPath);
         tmpFilesToRemove.push(processedDocPath);
-
-        // Encriptar documento si hay clave disponible
         let encryptedDoc = null;
         try {
             const docBuffer = fs.readFileSync(docPath);
@@ -559,21 +603,25 @@ const key = `INTENTOS:${userId}`;
             console.warn('No se pudo encriptar doc:', e);
         }
 
-        // =========================================================
-        // 🔹 4. OCR (lectura de texto del documento)
-        // =========================================================
-        const ocrText = (await realizarOCR(processedDocPath)) || "Texto no legible";
+        // 4. OCR, LIMPIEZA Y EXTRACCIÓN DE IDENTIFICADOR
+        const ocrTextCrudo = (await realizarOCR(processedDocPath)) || "Texto no legible";
+        const ocrText = limpiarTextoOCR(ocrTextCrudo);
+        console.log("OCR limpio para análisis:", ocrText);
 
-        // =========================================================
-        // 🔹 5. DETECTAR TIPO DE DOCUMENTO (DUI o PASAPORTE)
-        // =========================================================
+        // 5. DETECTAR TIPO DE DOCUMENTO
         const textoMinus = ocrText.toLowerCase();
-        if (textoMinus.includes("dui") && textoMinus.includes("identidad") && textoMinus.includes("el salvador")) {
+        if (
+            textoMinus.includes("dui") ||
+            textoMinus.includes("documento") ||
+            textoMinus.includes("nacimiento") ||
+            textoMinus.match(/\b\d{8}-\d\b/)
+        ) {
             tipoDocumentoDetectado = "DUI";
-        } else if (textoMinus.includes("pasaporte") && textoMinus.includes("passport")) {
+        } else if (textoMinus.includes("pasaporte") || textoMinus.includes("passport")) {
             tipoDocumentoDetectado = "Pasaporte";
         } else {
             tipoDocumentoDetectado = "Foto no válida (no es un documento oficial)";
+            // Ya que es un fallo temprano, borramos los archivos y retornamos el error.
             tmpFilesToRemove.forEach(p => safeUnlink(p));
             return res.json({
                 exito: false,
@@ -583,23 +631,15 @@ const key = `INTENTOS:${userId}`;
             });
         }
 
-        // =========================================================
-        // 🔹 6. EXTRAER IDENTIFICADOR DEL OCR
-        // =========================================================
-        const identificador = extraerIdentificadorDesdeOCR(ocrText) || "DESCONOCIDO";
+        // 6. EXTRAER IDENTIFICADOR DEL OCR
+        const identificadorObj = extraerIdentificadorDesdeOCR(ocrText) || null;
+        const identificador = identificadorObj ? identificadorObj.valor : "DESCONOCIDO";
 
-        // =========================================================
-        // 🔹 7. EXTRAER ROSTRO DEL DOCUMENTO
-        // =========================================================
+        // 7. EXTRAER ROSTRO DEL DOCUMENTO
         const rostroDocBuffer = await extraerRostroDocumento(processedDocPath);
 
-        // =========================================================
-        // 🔹 8. COMPARACIÓN FACIAL (documento vs selfie/video)
-        // =========================================================
-        let rostroCoincide = false;
-        let similarityScore = null;
+        // 8. COMPARACIÓN FACIAL (documento vs selfie/video)
         let encryptedSelfies = null;
-
         if (req.files.video?.[0]) {
             const videoPath = req.files.video[0].path;
             tmpFilesToRemove.push(videoPath);
@@ -627,109 +667,113 @@ const key = `INTENTOS:${userId}`;
                 }
 
                 // Encriptar selfie/video si hay clave
-                const videoBuffer = fs.readFileSync(videoPath);
-                if (KEY) encryptedSelfies = [{ data: encryptBuffer(videoBuffer).data, iv: encryptBuffer(videoBuffer).iv }];
-
+                if (KEY) {
+                    const videoBuffer = fs.readFileSync(videoPath);
+                    const enc = encryptBuffer(videoBuffer);
+                    encryptedSelfies = [{ data: enc.data, iv: enc.iv }];
+                } else {
+                    encryptedSelfies = null;
+                }
             } catch (err) {
                 console.error('Error comparación facial:', err);
             }
         }
 
         // =========================================================
-        // 🔹 9. REGISTRAR INTENTO EN REDIS
+        //  9. REGISTRAR INTENTO EN REDIS 
         // =========================================================
-        await redisClient.incr(key);
-        await redisClient.expire(key, EXPIRACION_INTENTOS);
+        const nuevosIntentos = await redisClient.incr(key); // ¡Solo un incremento!
+        // Solo establecer expire si la clave es nueva (si llegó a 1 -> recién creada)
+        if (nuevosIntentos === 1) {
+            await redisClient.expire(key, EXPIRACION_INTENTOS); // segundos
+        }
+
+        // =======================
+        //  10. GUARDAR EN BD
+        // =======================
+        verificationId = await guardarVerificacion({
+            user_id: userId,
+            ocrText,
+            similarityScore,
+            match_result: rostroCoincide,
+            liveness: null,
+            edad_valida: null,
+            documento_path: docPath,
+            selfie_paths: encryptedSelfies,
+            ip: req.ip || req.headers['x-forwarded-for'] || null,
+            dispositivo: { ua: req.get("User-Agent") || null },
+            acciones: null, // Incluido en la función 
+            resultado_general: rostroCoincide ? "APROBADO" : "RECHAZADO",
+            notificado: correo_usuario ? true : false,
+        });
+
+        console.log("Verificación guardada con id:", verificationId);
 
         // =========================================================
-        // 🔹 10. RESPUESTA FINAL
+        //   11. NOTIFICACIONES AUTOMÁTICAS (MOVIDO DENTRO DEL TRY)
         // =========================================================
-        res.json({
-            exito: true,
+
+        // ✔ ÉXITO
+        if (rostroCoincide && correo_usuario) {
+            await enviarCorreoNotificacion(
+                correo_usuario,
+                "Verificación Exitosa",
+                `<p>Hola ${nombre_usuario},</p>
+                <p>Tu verificación fue <strong>aprobada exitosamente</strong>.</p>
+                <p>Similitud detectada: ${similarityScore?.toFixed(2)}%</p>`
+            );
+        }
+
+        // ❌ FALLO
+        if (!rostroCoincide && correo_usuario) {
+            await enviarCorreoNotificacion(
+                correo_usuario,
+                "Verificación Fallida",
+                `<p>Hola ${nombre_usuario},</p>
+                <p>La verificación <strong>NO coincidió</strong> con tu documento.</p>
+                <p>Por favor inténtalo nuevamente.</p>`
+            );
+        }
+
+        // ⚠ Revisión manual (opcional)
+        if (similarityScore !== null && similarityScore < 50) {
+            await enviarCorreoNotificacion(
+                process.env.FROM_EMAIL, // Admin o correo del sistema
+                "Revisión Manual Requerida",
+                `<p>El usuario ${correo_usuario} requiere revisión manual. ID: ${verificationId}</p>`
+            );
+        }
+
+        // =========================================================
+        //  12. RESPUESTA FINAL (MOVIDO DENTRO DEL TRY)
+        // =========================================================
+        return res.json({
+            exito: rostroCoincide,
             mensaje: rostroCoincide
                 ? `✅ Verificación exitosa (Similitud: ${similarityScore?.toFixed(2)}%)`
                 : "❌ Rostro no coincide con el documento",
+            id_verificacion: verificationId,
+            match: rostroCoincide,
+            score: similarityScore,
+            ocr: ocrText,
             tipo_documento: tipoDocumentoDetectado,
             identificador,
-            similarityScore
         });
 
-    } catch (error) {
-        console.error("Error en /verificar-identidad:", error);
-        res.status(500).json({ exito: false, mensaje: "Error durante la verificación" });
+    } catch (err) {
+        console.error("Error en /verificar-identidad:", err);
+        // Si el error ocurre antes de la respuesta final, retornamos 500
+        return res.status(500).json({
+            exito: false,
+            mensaje: "Error en el servidor durante la verificación",
+        });
     } finally {
-        // 🔹 Eliminar archivos temporales
+        // 🔹 Borrar archivos temporales
         tmpFilesToRemove.forEach(p => safeUnlink(p));
     }
 });
 
-// Admin: listar verificaciones 
-function checkAdmin(req, res, next) {
-    const header = req.headers['x-admin-token'] || req.headers.authorization;
-    if (header && (header === process.env.ADMIN_TOKEN || (header.startsWith('Bearer ') && header.slice(7) === process.env.ADMIN_TOKEN))) return next();
-    return res.status(403).json({ ok: false, message: 'No autorizado' });
-}
-
-app.get('/admin/verificaciones', checkAdmin, async (req, res) => {
-    try {
-        const { rows } = await pool.query(`
-            SELECT v.*, u.nombres, u.apellidos, u.correo 
-            FROM verificacion_biometrica v 
-            LEFT JOIN usuarios u ON u.id = v.user_id 
-            ORDER BY v.created_at DESC LIMIT 500;
-        `);
-        res.json(rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ ok: false });
-    }
-});
-app.get('/admin/intentos', checkAdmin, async (req, res) => {
-    try {
-        const { rows } = await pool.query(`SELECT * FROM registro_intentos ORDER BY fecha_exito DESC LIMIT 500;`);
-        res.json(rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ ok: false });
-    }
-});
-
-
-// Registrar intentos en redis 
-app.post("/registro-intento", async (req, res) => {
-    try {
-        await conectarRedis(); // Asegurar conexión activa
-        const { user_id, exito } = req.body;
-        if (!user_id) return res.status(400).json({ ok: false, mensaje: "Falta user_id" });
-
-
-        //  Incrementamos el conteo de intentos
-        const intentos = await redisClient.incr(key);
-
-        // Expira en 24 horas
-        await redisClient.expire(key, 86400);
-
-        console.log(`🔁 Intento #${intentos} para usuario ${user_id}`);
-
-        // Si fue exitoso → guardamos en PostgreSQL
-        if (exito === true || exito === "true") {
-            await pool.query(
-                `INSERT INTO registro_intentos (user_id, intentos, fecha_exito)
-                VALUES ($1, $2, now())`,
-                [user_id, intentos]
-            );
-            return res.json({ ok: true, mensaje: "✅ Intento exitoso guardado" });
-        }
-
-        return res.json({ ok: true, mensaje: "Intento registrado", intentos });
-
-    } catch (err) {
-        console.error("Error guardando intento:", err);
-        return res.status(500).json({ ok: false, mensaje: "Error guardando intento" });
-    }
-});
-
-// ✅ INICIAR SERVIDOR CON REDIS 
+//  INICIAR SERVIDOR CON REDIS 
 async function iniciarServidor() {
     try {
         // Conectar Redis primero

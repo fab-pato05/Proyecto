@@ -10,6 +10,7 @@
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.914.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@sendgrid/mail": "^8.1.6",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",

@@ -1,4 +1,4 @@
-// Js/main.js  (cargar como <script type="module">)
+// Js/main.js 
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
@@ -15,8 +15,28 @@ let behaviorVerified = false;
 let facePositions = [];
 let faceMesh, pose;
 //Variable gobal de usuario 
-let user_id = null; // global
+let user_id = Number(localStorage.getItem('userId')) || null;
 
+// ✅ MODIFICACIÓN: Intentar cargar el ID del usuario
+function cargarUserId() {
+  // EJEMPLO: Si guardaste el ID directamente en localStorage al iniciar sesión:
+  const storedId = localStorage.getItem('userId');
+  if (storedId) {
+    user_id = storedId;
+    console.log(`Usuario ID cargado: ${user_id}`);
+    // Si el botón de envío no está habilitado, puede que quieras habilitarlo aquí
+    // habilitarEnvio(); 
+  } else {
+    // Si no hay ID, quizás redirigir al login o mostrar un error
+    mostrarMensajeUsuario("Error: ID de usuario no encontrado. Vuelve a iniciar sesión.", "error");
+    // Deshabilitar botón de envío si no hay ID
+    submitBtn.disabled = true;
+  }
+}
+
+// Llamar a la función al inicio
+cargarUserId();
+// ...
 // Recording
 let mediaRecorder;
 let recordedBlobs = [];
@@ -111,14 +131,14 @@ docInput.addEventListener("change", (e) => {
 // iniciar MediaPipe y loop
 async function iniciarMediaPipe() {
   try {
-  const stream = await navigator.mediaDevices.getUserMedia({
-  video: {
-    width: { ideal: 640 },
-    height: { ideal: 480 },
-    facingMode: "user"
-  }
-});
-video.srcObject = stream;
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        facingMode: "user"
+      }
+    });
+    video.srcObject = stream;
     await video.play();
 
     video.onloadedmetadata = () => {
@@ -318,7 +338,11 @@ async function enviarVerificacion(videoBlob) {
     fd.append("video", videoBlob, `selfie-${Date.now()}.webm`);
     fd.append("acciones", JSON.stringify(accionesRegistro));
     fd.append("device", JSON.stringify(deviceInfo()));
-    fd.append("user_id", user_id); 
+    if (!user_id) {
+      mostrarMensajeUsuario("❌ No se encontró el ID del usuario. Inicia sesión nuevamente.", "error");
+      return;
+    }
+    fd.append("user_id", user_id);
 
     mostrarMensajeUsuario("Enviando verificación...");
 
@@ -339,15 +363,15 @@ async function enviarVerificacion(videoBlob) {
       docStatus.className = "text-sm text-red-600 mt-1";
     }
     console.log("📤 Enviando datos a /registro-intento:", {
-  user_id,
-  exito: data.exito,
-  ocr_resumen: data.ocr_resumen,
-  explicacion_ia: data.explicacion_ia,
-  acciones: accionesRegistro,
-  device: deviceInfo()
-});
+      user_id,
+      exito: data.exito,
+      ocr_resumen: data.ocr_resumen ?? "",
+      explicacion_ia: data.explicacion_ia ?? "",
+      acciones: accionesRegistro,
+      device: deviceInfo()
+    });
 
-// Registro de intento adicional 
+    // Registro de intento adicional 
     await fetch("http://localhost:3000/registro-intento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -424,5 +448,13 @@ window.addEventListener("load", async () => {
   generarInstruccionesAleatorias();    // Prepara las instrucciones de acción
   registrarAccionSolicitada(instrucciones[0]); // Registra primera instrucción
   mostrarMensajeUsuario(" Sistema listo para iniciar verificación.");
-});
+  // 🚨 VERIFICACIÓN AL CARGAR LA PÁGINA
+    if (!user_id) {
+      mostrarMensajeUsuario("❌ No se pudo cargar el ID de usuario. Por favor, inicia sesión.", "error");
+      submitBtn.disabled = true; // Deshabilita el botón si no hay ID.
+    } else {
+      mostrarMensajeUsuario(" Sistema listo para iniciar verificación.");
+    }
+  });
+
 

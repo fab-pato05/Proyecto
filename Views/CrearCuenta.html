@@ -108,11 +108,34 @@
       <div id="mensaje" class="md:col-span-2 text-center mt-4 text-sm font-medium"></div>
     </form>
   </main>
-
+  <script>
+    // EJEMPLO: Esto debe estar en tu función de inicio de sesión (no en main.js)
+async function handleLoginSuccess(loginResponseData) {
+    // Asume que 'loginResponseData' tiene un campo 'id'
+    const userId = loginResponseData.id; 
+    
+    // GUARDA EL ID EN LOCALSTORAGE
+    localStorage.setItem('userId', userId); 
+    
+    // Redirige al usuario a la página de verificación (donde está main.js)
+    window.location.href = '/verificacion';
+}
+  </script>
   <script>
     // Toggle mostrar/ocultar contraseña
     const toggleBtn = document.getElementById('togglePwd');
     const pwdInput = document.getElementById('contrasena');
+
+if (response.ok) {
+  const loginData = await response.json();
+  if (loginData.token) {
+    // Guarda el ID para usarlo en main.js
+    localStorage.setItem('userId', loginData.id); 
+    // Guarda el token si lo necesitas para otras llamadas
+    localStorage.setItem('jwtToken', loginData.token);
+    window.location.href = loginData.redirect;
+  }
+}
     toggleBtn.addEventListener('click', () => {
       if (pwdInput.type === 'password') {
         pwdInput.type = 'text';
@@ -162,6 +185,7 @@
         submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
       }
     });
+
   </script>
 </body>
 </html>

@@ -3,7 +3,7 @@ document.getElementById("cotizacionForm").addEventListener("submit", async funct
 
     const formData = new FormData(this);
     const data = Object.fromEntries(formData.entries());
-    const monto = parseFloat(data.monto_asegurar);
+const monto = parseFloat(data.monto);
 
     // Validación corregida
     if (isNaN(monto) || monto < 100) {
