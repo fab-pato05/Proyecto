@@ -1,23 +1,29 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => 
+  {
   
   // Detectar si estamos en Configuracion.html
-  if (location.pathname.includes("configuracion.html")) {
+  if (location.pathname.includes("configuracion.html")) 
+    {
     initConfiguracion();
   }
   // Detectar si estamos en Dashboard.html
-  if (location.pathname.includes("dashboard.html")) {
+  if (location.pathname.includes("dashboard.html")) 
+    {
     initDashboard();
   }
     // Detectar si estamos en reportes.html
-  if (location.pathname.includes("reportes.html")) {
+  if (location.pathname.includes("reportes.html")) 
+    {
     initReportes();
   }
     // Detectar si estamos en resultados.html
-  if (location.pathname.includes("resultados.html")) {
+  if (location.pathname.includes("resultados.html")) 
+    {
     initResultados();
   }
     // Detectar si estamos en solicitudes.html
-  if (location.pathname.includes("solicitudes.html")) {
+  if (location.pathname.includes("solicitudes.html")) 
+    {
     initSolicitudes();
   }
 
@@ -25,13 +31,15 @@ document.addEventListener("DOMContentLoaded", () => {
 // =======================
 // CONFIGURACIÓN
 // =======================
-function initConfiguracion() {
+function initConfiguracion() 
+ {
 
   const KEY = 'admin_general_config_v1';
   function loadConfig(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return {}; } }
   function saveConfig(cfg){ localStorage.setItem(KEY, JSON.stringify(cfg)); }
 
-  function applyToForm(cfg){
+  function applyToForm(cfg)
+  {
     document.getElementById('cfg-enable-notifications').checked = !!cfg.enableNotifications;
     document.getElementById('cfg-frequency').value = cfg.frequency || 'daily';
     document.getElementById('ch-email').checked = !!(cfg.channels && cfg.channels.email);
@@ -40,7 +48,8 @@ function initConfiguracion() {
     document.getElementById('ch-sms').checked = !!(cfg.channels && cfg.channels.sms);
   }
 
-  function readFromForm(){
+  function readFromForm()
+  {
     return {
       enableNotifications: document.getElementById('cfg-enable-notifications').checked,
       frequency: document.getElementById('cfg-frequency').value,
@@ -53,20 +62,23 @@ function initConfiguracion() {
     };
   }
 
-  function toggleNotificationControls(){
+  function toggleNotificationControls()
+  {
     const enabled = document.getElementById('cfg-enable-notifications').checked;
     document.getElementById('cfg-frequency').disabled = !enabled;
     ['ch-email','ch-whatsapp','ch-app','ch-sms']
       .forEach(id=> document.getElementById(id).disabled = !enabled);
   }
 
-  function saveReport(text){
+  function saveReport(text)
+  {
     const arr = JSON.parse(localStorage.getItem('admin_reports')||'[]');
     arr.push({text, ts:Date.now()});
     localStorage.setItem('admin_reports', JSON.stringify(arr));
   }
 
-  function saveFeedback(text){
+  function saveFeedback(text)
+  {
     const arr = JSON.parse(localStorage.getItem('admin_feedback')||'[]');
     arr.push({text, ts:Date.now()});
     localStorage.setItem('admin_feedback', JSON.stringify(arr));
@@ -115,23 +127,27 @@ function initConfiguracion() {
 // =======================
 // DASHBOARD
 // =======================
-function initDashboard() {
+function initDashboard() 
+{
 
   // restaurar sidebar
   const sidebar = document.getElementById('sidebar');
-  if (sidebar) {
+  if (sidebar) 
+    {
     sidebar.style.display = '';
     try { localStorage.removeItem('admin_sidebar_collapsed'); } catch(e){}
   }
 
   // Datos de prueba
-  const fakeRequests = [
+  const fakeRequests = 
+  [
     {id:'REQ-001', estado:'pending', processingTime:45, docType:'dni', fecha:'2025-10-01'},
     {id:'REQ-002', estado:'approved', processingTime:32, docType:'licencia', fecha:'2025-09-21'},
     {id:'REQ-003', estado:'rejected', processingTime:60, docType:'pasaporte', fecha:'2025-09-15'},
     {id:'REQ-004', estado:'pending', processingTime:20, docType:'dni', fecha:'2025-10-03'}
   ];
-  const fakeActivity = [
+  const fakeActivity = 
+  [
     'Usuario REQ-004 subió documento',
     'Solicitud REQ-002 aprobada',
     'Informe generado: 2025-10-03'
@@ -159,17 +175,21 @@ function initDashboard() {
 // REPORTES
 // =======================
 // menú izquierdo siempre visible
-function initReportes() {
-    (function () {
+function initReportes() 
+{
+    (function () 
+    {
         const sidebar = document.getElementById('sidebar');
         sidebar.style.display = '';
     })();
 
-    (function () {
+    (function () 
+    {
         const chartCtx = document.getElementById('report-chart').getContext('2d');
         let chart = null;
         // Aplicar preset de fechas
-        function applyPreset(preset) {
+        function applyPreset(preset) 
+        {
             const now = new Date();
             let from = '';
             if (preset === 'day1') { { const d = new Date(now); d.setDate(d.getDate() - 1); from = d.toISOString().slice(0, 10); } }
@@ -181,17 +201,20 @@ function initReportes() {
             document.getElementById('r-to').value = new Date().toISOString().slice(0, 10);
         }
   
-        document.getElementById('r-preset').addEventListener('change', (e) => {
+        document.getElementById('r-preset').addEventListener('change', (e) => 
+          {
             if (e.target.value !== 'custom') applyPreset(e.target.value);
         });
         // Generar datos de prueba
-        function generateData(type, from, to) {
+        function generateData(type, from, to) 
+        {
             const start = from ? new Date(from) : new Date(new Date().setDate(new Date().getDate() - 7));
             const end = to ? new Date(to) : new Date();
             const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24))) + 1;
 
             const labels = [], values = [];
-            for (let i = 0; i < days; i++) {
+            for (let i = 0; i < days; i++) 
+              {
                 const d = new Date(start);
                 d.setDate(start.getDate() + i);
                 labels.push(d.toISOString().slice(0, 10));
@@ -200,9 +223,11 @@ function initReportes() {
             return { labels, values };
         }
 
-        function renderChart(labels, values, type) {
+        function renderChart(labels, values, type) 
+        {
             if (chart) chart.destroy();
-            chart = new Chart(chartCtx, {
+            chart = new Chart(chartCtx, 
+              {
                 type: 'bar',
                 data: {
                     labels,
@@ -212,14 +237,16 @@ function initReportes() {
                         backgroundColor: 'rgba(59,130,246,0.6)'
                     }]
                 },
-                options: {
+                options: 
+                {
                     responsive: true,
                     maintainAspectRatio: false
                 }
             });
         }
         // Renderizar tabla de vista previa
-        function renderTablePreview(labels, values) {
+        function renderTablePreview(labels, values) 
+        {
             const el = document.getElementById('report-table');
             el.innerHTML = labels.map((lab, i) =>
                 `<div class="grid grid-cols-2 gap-2 py-1 border-b">
@@ -229,7 +256,8 @@ function initReportes() {
             ).join('');
         }
         // Generar reporte en excel
-        document.getElementById('gen-report').addEventListener('click', () => {
+        document.getElementById('gen-report').addEventListener('click', () => 
+          {
             const from = document.getElementById('r-from').value;
             const to = document.getElementById('r-to').value;
             const type = document.getElementById('r-type').value;
@@ -243,7 +271,8 @@ function initReportes() {
         });
 
         // Exportar pdf + xlsx
-        document.getElementById('export-report').addEventListener('click', () => {
+        document.getElementById('export-report').addEventListener('click', () => 
+          {
             const r = window.__report_preview;
             if (!r) { alert('Genera un reporte primero.'); return; }
 
@@ -253,7 +282,8 @@ function initReportes() {
             doc.text(`Reporte: ${r.type}`, 10, 10);
 
             let y = 20;
-            r.labels.forEach((l, i) => {
+            r.labels.forEach((l, i) => 
+              {
                 doc.text(`${l}: ${r.values[i]}`, 10, y);
                 y += 6;
                 if (y > 280) { doc.addPage(); y = 20; }
@@ -292,7 +322,8 @@ function initReportes() {
 // =======================
 // RESULTADOS
 // =======================
-function initResultados() {
+function initResultados() 
+{
     // mwnu siempre visible
     (function(){ const sidebar=document.getElementById('sidebar'); sidebar.style.display=''; try{ localStorage.removeItem('admin_sidebar_collapsed'); }catch(e){} })();
     const fakeResults=[{id:'RES-001',request:'REQ-002',score:0.92,summary:'Coincidencia alta'},{id:'RES-002',request:'REQ-001',score:0.45,summary:'Coincidencia baja - revisar'}];
@@ -314,18 +345,21 @@ function initSolicitudes()
       {id:'REQ-004',nombre:'Carlos Ruiz',email:'carlos@example.com',fecha:'2025-10-03',estado:'pending', docType:'dni', processingTime:20}
     ];
 
-    function matchesFilters(item){
+    function matchesFilters(item)
+    {
       const q = (document.getElementById('search').value||'').toLowerCase();
       if(q && !item.nombre.toLowerCase().includes(q)) return false;
       return true;
     }
 
-    function onAction(id, newState){
+    function onAction(id, newState)
+    {
       const idx = fakeData.findIndex(x=>x.id===id);
       if(idx>-1){ fakeData[idx].estado = newState; render(); }
     }
 
-    function render(){
+    function render()
+    {
       const rows = fakeData.filter(matchesFilters);
       document.getElementById('table-body').innerHTML = rows.map(r=>`<tr class="border-b hover:bg-gray-50"><td class="py-2">${r.id}</td><td class="py-2">${r.nombre}</td><td class="py-2">${r.email}</td><td class="py-2">${r.fecha}</td><td class="py-2">${r.docType}</td><td class="py-2">${r.estado}</td><td class="py-2">${r.processingTime}</td><td class="py-2"><button data-id="${r.id}" class="approve px-2 py-1 bg-green-600 text-white rounded mr-2">Aprobar</button><button data-id="${r.id}" class="reject px-2 py-1 bg-red-600 text-white rounded">Rechazar</button></td></tr>`).join('');
       // attach handlers

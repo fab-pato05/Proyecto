@@ -11,5 +11,5 @@
         alert("Usuario o contraseña incorrectos");
       }
     });
-    // Activar íconos Feather (si los usas)
+    // Activar íconos Feather (si se usan íconos Feather)
     feather.replace();

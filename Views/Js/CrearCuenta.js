@@ -1,8 +1,10 @@
     // Toggle mostrar/ocultar contraseña
     const toggleBtn = document.getElementById('togglePwd');
     const pwdInput = document.getElementById('contrasena');
-    toggleBtn.addEventListener('click', () => {
-      if (pwdInput.type === 'password') {
+    toggleBtn.addEventListener('click', () => 
+      {
+      if (pwdInput.type === 'password') 
+        {
         pwdInput.type = 'text';
         toggleBtn.textContent = 'Ocultar';
       } else {
@@ -16,7 +18,8 @@
     const mensaje = document.getElementById('mensaje');
     const submitBtn = document.getElementById('submitBtn');
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e) => 
+      {
       e.preventDefault();
       submitBtn.disabled = true;
       submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
@@ -26,23 +29,29 @@
       const data = new URLSearchParams(formData);
 
       try {
-        const res = await fetch('/guardar-registerForm', {
+        const res = await fetch('/guardar-registerForm', 
+          {
           method: 'POST',
           body: data
-        });
+        }
+      );
         const result = await res.json();
 
-        if (result.ok) {
+        if (result.ok)
+          {
           mensaje.className = 'text-center mt-4 text-sm font-medium text-green-600';
           mensaje.textContent = '✅ Registro exitoso. Redirigiendo...';
           setTimeout(() => { window.location.href = '/cotizador.html'; }, 1500);
-        } else {
+        } 
+        else 
+          {
           mensaje.className = 'text-center mt-4 text-sm font-medium text-red-600';
           mensaje.textContent = result.message || '❌ Error al registrar usuario.';
           submitBtn.disabled = false;
           submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
         }
-      } catch (err) {
+      } catch (err) 
+      {
         console.error(err);
         mensaje.className = 'text-center mt-4 text-sm font-medium text-red-600';
         mensaje.textContent = '❌ Error al conectar con el servidor.';

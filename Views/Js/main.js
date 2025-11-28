@@ -15,16 +15,16 @@ let behaviorVerified = false;
 let facePositions = [];
 let faceMesh, pose;
 
-// Recording
+// MediaRecorder para grabar video
 let mediaRecorder;
 let recordedBlobs = [];
 
-// Actions (challenges)
+// Instrucciones y acciones
 let instrucciones = [];
 let instruccionActual = 0;
-let accionesRegistro = []; // {action, requestedAt, performedAt, success}
+let accionesRegistro = []; // { action, requestedAt, performedAt, success }
 
-// Helper UI
+// Mostrar mensajes al usuario
 function mostrarMensajeUsuario(texto, tipo = "info") {
   if (mensajeUsuario) {
     mensajeUsuario.textContent = texto;
@@ -54,12 +54,12 @@ function marcarAccionRealizada(success = true) {
   last.success = !!success;
 }
 
-// Device info
+// Información del dispositivo
 function deviceInfo() {
   return { userAgent: navigator.userAgent, platform: navigator.platform, language: navigator.language };
 }
 
-// MediaRecorder controls
+// MediaRecorder controles
 function startRecording() {
   recordedBlobs = [];
   let options = { mimeType: 'video/webm;codecs=vp9' };

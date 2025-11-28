@@ -4,10 +4,12 @@ if (cotizacion) {
         `Seguro de $${cotizacion.monto} por $${cotizacion.precio}/año`;
 }
 
-document.getElementById("contratarForm").addEventListener("submit", function (e) {
+document.getElementById("contratarForm").addEventListener("submit", function (e) 
+{
     e.preventDefault();
 
-    const datos = {
+    const datos =
+    {
         nombre: document.getElementById("nombre").value,
         email: document.getElementById("email").value,
         telefono: document.getElementById("telefono").value,

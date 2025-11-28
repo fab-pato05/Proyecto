@@ -9,15 +9,17 @@
         const statusMsg = document.getElementById('statusMsg');
         const DURATION = 60; // segundos
         let intervalId = null;
-
-        function startTimer() {
+        // Función para iniciar el temporizador
+        function startTimer() 
+        {
           let remaining = DURATION;
           resendBtn.classList.remove('hidden');
           resendBtn.disabled = true;
           resendBtn.textContent = `Reenviar código (${remaining}s)`;
           resendBtn.classList.remove('opacity-60');
-
-          intervalId = setInterval(() => {
+          // Iniciar intervalo
+          intervalId = setInterval(() =>
+          {
             remaining -= 1;
             if (remaining > 0) {
               resendBtn.textContent = `Reenviar código (${remaining}s)`;
@@ -29,8 +31,9 @@
             }
           }, 1000);
         }
-
-        function onSend(e){
+        // Manejar envío del formulario
+        function onSend(e)
+        {
           e.preventDefault();
           // Mostrar mensaje de confirmación (simulado)
           statusMsg.classList.remove('hidden');
@@ -42,7 +45,6 @@
           startTimer();
           // Aquí iría la llamada real al servidor para enviar el correo
         }
-
         function onResend(){
           // Simular reenvío: volver a deshabilitar y reiniciar contador
           resendBtn.disabled = true;
@@ -52,7 +54,6 @@
           startTimer();
           // Aquí iría la llamada real al servidor para reenviar el correo
         }
-
         form.addEventListener('submit', onSend);
         resendBtn.addEventListener('click', onResend);
       })();

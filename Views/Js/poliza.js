@@ -1,11 +1,14 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => 
+  {
   
   // Detectar si estamos en poliza.html
-  if (location.pathname.includes("poliza.html")) {
+  if (location.pathname.includes("poliza.html")) 
+    {
     initPoliza();
   }
   // Detectar si estamos en beneficiarios.html
-  if (location.pathname.includes("beneficiarios.html")) {
+  if (location.pathname.includes("beneficiarios.html")) 
+    {
     initBeneficiarios();
   }
 });
@@ -16,7 +19,8 @@ function initPoliza() {
         const user = JSON.parse(localStorage.getItem("usuario"));
         const info = document.getElementById("info");
 
-        if (user && user.contrato) {
+        if (user && user.contrato) 
+          {
             const c = user.contrato;
             // Asegurarse de que el valor exista antes de usar
             const nombre = c.nombre || (user.nombreCompleto || 'Usuario');
@@ -66,13 +70,15 @@ function initPoliza() {
      // =======
      // BENEFICIARIOS
      // =======
-      function initBeneficiarios() {
+      function initBeneficiarios() 
+      {
           // cargar beneficiarios desde localStorage (demo)
     (function(){
       const listaEl = document.getElementById('lista');
       const user = JSON.parse(localStorage.getItem('usuario')) || {};
       const beneficiaries = (user.beneficiarios) || [];
-      if(!beneficiaries.length){
+      if(!beneficiaries.length)
+        {
         listaEl.innerHTML = '<p class="text-gray-500">No hay beneficiarios registrados.</p>';
         return;
       }

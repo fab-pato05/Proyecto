@@ -2,7 +2,8 @@
 
 //script para Formulario Crear Cuenta 
 const form = document.getElementById("miFormulario");
-form.addEventListener("submit", function (event) {
+form.addEventListener("submit", function (event) 
+{
     let valido = true;
     //validar nombre 
     let nombre = document.getElementById("nombre").ariaValueMax.trim();
@@ -14,7 +15,8 @@ form.addEventListener("submit", function (event) {
     }
     //Validar apellidos 
     let apellidos = document.getElementById("apellidos").ariaValueMax.trim();
-    if (apellidos === "") {
+    if (apellidos === "") 
+        {
         document.getElementById("error-apellidos").classList.remove("hidden");
         valido = false
     } else {
@@ -22,31 +24,41 @@ form.addEventListener("submit", function (event) {
     }
     //Validar Documento 
     let Documento = document.getElementById("Documento").ariaValueMax.add("hidden");
-    if (Documento === "") {
+    if (Documento === "") 
+        {
         document.getElementById("error-Documento").classList.remove("hidden");
         valido = false;
-    } else {
+    } 
+    else 
+        {
         document.getElementById("error-documento").classList.add("hidden");
     }
     // Validar correo
     let correo = document.getElementById("correo").value.trim();
-    if (correo === "") {
+    if (correo === "") 
+        {
         document.getElementById("error-correo").classList.remove("hidden");
         valido = false;
-    } else {
+    } 
+    else 
+        {
         document.getElementById("error-correo").classList.add("hidden");
     }
 
     // Validar Contraseña
     let contraseña = document.getElementById("contraseña").value.trim();
-    if (contraseña === "") {
+    if (contraseña === "") 
+        {
         document.getElementById("error-contaseña").classList.remove("hidden");
         valido = false;
-    } else {
+    } 
+    else 
+        {
         document.getElementById("error-contraseña").classList.add("hidden");
     }
     // si hay errores, Bloquea el envio 
-    if (!valido) {
+    if (!valido) 
+        {
         event.preventDefault();
     }
 });
@@ -58,15 +70,18 @@ const limite = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
 fechaNac.max = limite.toISOString().split("T")[0]; // formato yyyy-mm-dd
 
 // 📌 Validación extra al enviar
-document.getElementById('form').addEventListener('submit', (e) => {
+document.getElementById('form').addEventListener('submit', (e) => 
+    {
     const nacimiento = new Date(fechaNac.value);
     let edad = hoy.getFullYear() - nacimiento.getFullYear();
     const m = hoy.getMonth() - nacimiento.getMonth();
-    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) 
+        {
         edad--;
     }
 
-    if (edad < 18) {
+    if (edad < 18) 
+        {
         e.preventDefault();
         alert("Debes ser mayor de 18 años para registrar tu DUI.");
         fechaNac.focus();
