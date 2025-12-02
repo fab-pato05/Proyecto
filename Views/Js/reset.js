@@ -1,8 +1,8 @@
 // Establecer año actual en el footer
       document.getElementById('year').textContent = new Date().getFullYear();
-
       // Lógica para mostrar botón de reenvío con temporizador de 60s
-      (function(){
+      (function()
+      {
         const form = document.getElementById('recoverForm');
         const sendBtn = document.getElementById('sendBtn');
         const resendBtn = document.getElementById('resendBtn');

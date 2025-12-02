@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel - Pagos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="img/LOGO_CS.jpg" type="image/jpeg" sizes="32x32">
+  <style>
+    @media (max-width:767px){
+      aside{position:fixed;left:0;top:0;height:100%;transform:translateX(-110%);transition:transform .2s ease;background:#0369a1;z-index:40}
+      body.mobile-open aside{transform:translateX(0)}
+      #mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:30}
+      body.mobile-open #mobile-overlay{display:block}
+      main{padding:1rem}
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside class="bg-sky-700 text-white w-64 p-6 space-y-6" id="sidebar">
+    <h2 class="text-2xl font-bold">MiSeguro</h2>
+    <nav class="space-y-4">
+      <a href="Index.html" class="block hover:bg-indigo-500 p-2 rounded">🏠 Inicio</a>
+      <a href="poliza.html" class="block hover:bg-indigo-500 p-2 rounded">📄 Mi Póliza</a>
+      <a href="pagos.html" class="block bg-indigo-500 p-2 rounded font-semibold">💳 Pagos</a>
+      <a href="beneficiarios.html" class="block hover:bg-indigo-500 p-2 rounded">👨‍👩‍👧 Beneficiarios</a>
+      <a href="documentos.html" class="block hover:bg-indigo-500 p-2 rounded">📥 Documentos</a>
+      <a href="soporte.html" class="block hover:bg-indigo-500 p-2 rounded">❓ Soporte</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 p-6 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-6">
+      <div class="bg-white shadow rounded-2xl p-6 flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Pagos</h1>
+          <p class="text-sm text-gray-500">Resumen de tus pagos y métodos</p>
+        </div>
+        <div class="flex gap-3 items-center">
+          <button onclick="window.print()" class="inline-flex items-center gap-2 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition">Imprimir</button>
+        </div>
+      </div>
+
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h3 class="text-sm text-gray-500">Próximo vencimiento</h3>
+          <p class="mt-2 font-semibold text-gray-800">01/12/2025</p>
+          <p class="text-sm text-gray-600 mt-2">Monto a pagar: <strong>$499</strong></p>
+          <div class="mt-4">
+            <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Pagar ahora</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-6 lg:col-span-2">
+          <h3 class="text-lg font-semibold mb-4">Métodos de pago</h3>
+          <div class="grid gap-4">
+            <div class="p-4 rounded-lg bg-gray-50 flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Tarjeta terminación</p>
+                <p class="font-medium">Visa •••• 4242</p>
+              </div>
+              <div class="text-sm text-gray-500">Exp: 12/26</div>
+            </div>
+
+            <div class="p-4 rounded-lg bg-gray-50 flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">PayPal</p>
+                <p class="font-medium">usuario@paypal.com</p>
+              </div>
+              <div class="text-sm text-gray-500">Vinculado</div>
+            </div>
+          </div>
+
+          <div class="mt-6 text-right">
+            <a href="#" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Agregar método de pago</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Historial de pagos</h3>
+        <ul class="space-y-3">
+          <li class="flex items-center justify-between bg-gray-50 p-3 rounded">
+            <div>
+              <p class="font-medium">Pago anual</p>
+              <p class="text-sm text-gray-500">01/12/2024 • Transacción #A123</p>
+            </div>
+            <div class="font-semibold">$499</div>
+          </li>
+          <li class="flex items-center justify-between bg-gray-50 p-3 rounded">
+            <div>
+              <p class="font-medium">Pago anual</p>
+              <p class="text-sm text-gray-500">01/12/2023 • Transacción #A098</p>
+            </div>
+            <div class="font-semibold">$499</div>
+          </li>
+        </ul>
+      </section>
+
+    </div>
+  </main>
+  <div id="mobile-overlay"></div>
+  <script>
+    (function(){
+      const overlay=document.getElementById('mobile-overlay'); if(overlay) overlay.addEventListener('click',()=>{ document.body.classList.remove('mobile-open'); document.body.style.overflow=''; });
+      let startX=0, startY=0, active=false; const EDGE_ZONE=30, OPEN_THRESHOLD=60, CLOSE_THRESHOLD=-60;
+      function onStart(e){ const t=(e.touches&&e.touches[0])||e; startX=t.clientX; startY=t.clientY; active=(startX<=EDGE_ZONE)||document.body.classList.contains('mobile-open'); }
+      function onMove(e){ if(!active) return; const t=(e.touches&&e.touches[0])||e; const dx=t.clientX-startX, dy=t.clientY-startY; if(Math.abs(dy)>50){ active=false; return; } }
+      function onEnd(e){ if(!active) return; const t=(e.changedTouches&&e.changedTouches[0])||e; const dx=t.clientX-startX; if(!document.body.classList.contains('mobile-open') && dx>OPEN_THRESHOLD){ document.body.classList.add('mobile-open'); document.body.style.overflow='hidden'; } else if(document.body.classList.contains('mobile-open') && dx<CLOSE_THRESHOLD){ document.body.classList.remove('mobile-open'); document.body.style.overflow=''; } active=false; }
+      document.addEventListener('touchstart', onStart, {passive:true}); document.addEventListener('touchmove', onMove, {passive:true}); document.addEventListener('touchend', onEnd, {passive:true});
+      let mdown=false; document.addEventListener('mousedown',(e)=>{ startX=e.clientX; startY=e.clientY; mdown=(startX<=EDGE_ZONE)||document.body.classList.contains('mobile-open'); });
+      document.addEventListener('mousemove',(e)=>{ if(!mdown) return; const dx=e.clientX-startX; if(document.body.classList.contains('mobile-open')) return; if(dx>OPEN_THRESHOLD){ document.body.classList.add('mobile-open'); document.body.style.overflow='hidden'; mdown=false; } });
+      document.addEventListener('mouseup',()=>{ mdown=false; });
+    })();
+  </script>
+</body>
+</html>

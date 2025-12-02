@@ -23,7 +23,7 @@
                     </a>
                 </div>
 
-                <button class="md:hidden text-gray-700 focus:outline-none">
+                <button class="md:hidden text-gray-700 focus:outline-none mobile-toggle-btn">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
@@ -40,11 +40,20 @@
                     <li><a href="Index.html" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">Volver al inicio</a></li>
                 </ul>
             </div>
+
+            <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+              <ul class="flex flex-col px-4 py-2 space-y-2">
+                <li><a href="Contacto.html" class="block py-2">Contacto</a></li>
+                <li><a href="Privacidad.html" class="block py-2">Privacidad</a></li>
+                <li><a href="Terminos.html" class="block py-2">Términos y Condiciones</a></li>
+                <li><a href="Index.html" class="block py-2 text-blue-600">Volver al inicio</a></li>
+              </ul>
+            </div>
         </nav>
     </header>
 
     <!-- Contenido -->
-    <main class="max-w-4xl mx-auto px-6 py-10 bg-white shadow-lg rounded-xl mt-8">
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10 bg-white shadow-lg rounded-xl mt-8">
         <h1 class="text-3xl font-bold text-center mb-6 text-gray-900">Términos y Condiciones de Uso</h1>
         <p class="text-sm text-gray-500 mb-6 text-center">
             <strong>Última actualización: 15 de octubre de 2025</strong>
@@ -130,6 +139,14 @@
             </p>
         </div>
     </footer>
+
+    <script>
+      (function(){
+        const btn=document.querySelector('.mobile-toggle-btn');
+        const menu=document.getElementById('mobile-menu');
+        if(btn && menu) btn.addEventListener('click',()=>menu.classList.toggle('hidden'));
+      })();
+    </script>
 </body>
 
 </html>

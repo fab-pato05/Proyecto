@@ -22,7 +22,7 @@ document.getElementById("cotizacionForm").addEventListener("submit", async funct
         this.reset();
     } catch (err) {
         console.error(err);
-        alert("❌ Error al enviar cotización");
+        alert("❌ Error al enviar la cotización. Intente nuevamente.");
     }
 
 

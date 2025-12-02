@@ -21,7 +21,7 @@
           </a>
         </div>
 
-        <button class="md:hidden text-gray-700 focus:outline-none">
+        <button class="md:hidden text-gray-700 focus:outline-none mobile-toggle-btn" aria-label="Abrir menú">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -34,21 +34,39 @@
           <li><a href="Index.html" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">Volver al inicio</a></li>
         </ul>
       </div>
+
+      <!-- mobile menu -->
+      <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+        <ul class="flex flex-col px-4 py-2 space-y-2">
+          <li><a href="Contacto.html" class="block py-2">Contacto</a></li>
+          <li><a href="Privacidad.html" class="block py-2">Privacidad</a></li>
+          <li><a href="Terminos.html" class="block py-2">Términos y Condiciones</a></li>
+          <li><a href="Index.html" class="block py-2 text-blue-600">Volver al inicio</a></li>
+        </ul>
+      </div>
     </nav>
   </header>
 
-  <main class="container mx-auto px-6 py-12">
+  <main class="container mx-auto px-4 sm:px-6 py-12">
     <!-- Breve descripcion de la App-->
     <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Descargar Círculo Seguro</h1>
     <p class="text-center mb-6">Obtén la aplicación oficial para gestionar y verificar tus seguros desde tu PC.</p>
     <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 text-center">
       <!--Boton con enlace de descarga-->
       <p class="mb-4">Descarga la versión para Windows:</p>
-      <a id="btn-descargar" href="https://www.mediafire.com/file/z7rujsuluw2bvup/Circulo_seguro.7z/file" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Descargar para Windows</a>
+      <a id="btn-descargar" href="https://www.mediafire.com/file/z7rujsuluw2bvup/Circulo_seguro.7z/file" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 w-full sm:inline-block sm:w-auto text-center">Descargar para Windows</a>
       <p class="text-sm text-gray-600 mt-4">Si necesitas ayuda, contáctanos en Circulo_Seguro@hotmail.com</p>
     </div>
     <p class="text-center text-sm text-gray-600 mt-8">
     </p>
   </main>
+
+  <script>
+    (function(){
+      const btn = document.querySelector('.mobile-toggle-btn');
+      const menu = document.getElementById('mobile-menu');
+      if(btn && menu) btn.addEventListener('click', ()=> menu.classList.toggle('hidden'));
+    })();
+  </script>
 </body>
 </html>

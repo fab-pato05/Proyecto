@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel - Mi Póliza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="img/LOGO_CS.jpg" type="image/jpeg" sizes="32x32">
+    <style>
+      /* Deslizamiento de menu */
+      @media (max-width:767px){
+        aside#sidebar{position:fixed; left:0; top:0; height:100%; transform:translateX(-100%); transition:transform .2s ease; z-index:40; width:18rem}
+        body.mobile-open aside#sidebar{transform:translateX(0)}
+        #mobile-overlay{display:none}
+        body.mobile-open #mobile-overlay{display:block; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:30}
+        main{touch-action:pan-y; -webkit-tap-highlight-color: transparent}
+        aside#sidebar.dragging{transition:none}
+      }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside class="bg-sky-700 text-white w-64 p-6 space-y-6" id="sidebar">
+        <h2 class="text-2xl font-bold">MiSeguro</h2>
+        <nav class="space-y-4">
+            <a href="/Views/Index.html" class="block hover:bg-indigo-500 p-2 rounded">🏠 Inicio</a>
+            <a href="poliza.html" class="block bg-indigo-500 p-2 rounded font-semibold">📄 Mi Póliza</a>
+            <a href="pagos.html" class="block hover:bg-indigo-500 p-2 rounded">💳 Pagos</a>
+            <a href="beneficiarios.html" class="block hover:bg-indigo-500 p-2 rounded">👨‍👩‍👧 Beneficiarios</a>
+            <a href="documentos.html" class="block hover:bg-indigo-500 p-2 rounded">📥 Documentos</a>
+            <a href="soporte.html" class="block hover:bg-indigo-500 p-2 rounded">❓ Soporte</a>
+        </nav>
+    </aside>
+
+    <!-- Contenido principal mejorado -->
+    <main class="flex-1 p-6 md:p-8">
+        <div class="max-w-6xl mx-auto space-y-6">
+            <!-- Encabezado con acciones -->
+            <div class="bg-white shadow rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <img src="img/LOGO_CS.jpg" alt="logo" class="w-14 h-14 rounded-full shadow">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Mi Póliza</h1>
+                        <p class="text-sm text-gray-500">Resumen y detalles de tu seguro</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button id="btn-download" class="hidden md:inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <!-- icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+                        Descargar Póliza
+                    </button>
+
+                    <button onclick="window.print()" class="inline-flex items-center gap-2 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18h12v4H6v-4z"/></svg>
+                        Imprimir
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumen general -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl shadow p-6">
+                    <h3 class="text-sm text-gray-500">Estado</h3>
+                    <p class="mt-2 font-semibold text-green-600">ACTIVA</p>
+
+                    <hr class="my-4">
+
+                    <h4 class="text-sm text-gray-500">Número de Póliza</h4>
+                    <p class="font-medium">SV-2039482</p>
+
+                    <h4 class="text-sm text-gray-500 mt-3">Vigencia</h4>
+                    <p class="font-medium">10/02/2024 - 10/02/2044</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow p-6 lg:col-span-2">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Titular</h3>
+                    <div id="info" class="text-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-lg text-center">
+                            <h5 class="text-xs text-gray-500">Monto asegurado</h5>
+                            <p class="font-semibold text-gray-800">$50,000</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg text-center">
+                            <h5 class="text-xs text-gray-500">Precio anual</h5>
+                            <p class="font-semibold text-gray-800">$499</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg text-center">
+                            <h5 class="text-xs text-gray-500">Forma de pago</h5>
+                            <p class="font-semibold text-gray-800">Anual</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detalles extendidos: beneficiarios, documentos, historial -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow p-6">
+                    <h3 class="text-lg font-semibold mb-3">Beneficiarios</h3>
+                    <p class="text-gray-600">No se han registrado beneficiarios.</p>
+                    <div class="mt-4 text-right">
+                        <a href="beneficiarios.html" class="text-blue-600 hover:underline">Agregar beneficiario</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow p-6">
+                    <h3 class="text-lg font-semibold mb-3">Documentos</h3>
+                    <p class="text-gray-600">Aquí podrás descargar tu póliza y recibos de pago.</p>
+                    <ul class="mt-3 space-y-2">
+                        <li class="flex items-center justify-between bg-gray-50 p-3 rounded">
+                            <span class="text-sm text-gray-700">Póliza completa (PDF)</span>
+                            <a href="documentos.html" class="text-blue-600 hover:underline">Descargar</a>
+                        </li>
+                        <li class="flex items-center justify-between bg-gray-50 p-3 rounded">
+                            <span class="text-sm text-gray-700">Recibo anual (PDF)</span>
+                            <a href="documentos.html" class="text-blue-600 hover:underline">Descargar</a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Acciones rápidas -->
+            <div class="bg-white rounded-2xl shadow p-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="text-sm text-gray-600">¿Necesitas ayuda? <a href="#" class="text-blue-600 hover:underline">Contacta soporte</a></div>
+                <div class="flex gap-3 w-full md:w-auto">
+                    <a href="#" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 w-full md:w-auto">Cancelar póliza</a>
+                    <a href="#" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 w-full md:w-auto">Renovar</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="mobile-overlay"></div>
+    <script src="Js/poliza.js"></script>
+    <script>
+      (function(){
+        const overlay=document.getElementById('mobile-overlay');
+        const sidebar=document.getElementById('sidebar');
+        const SIDEBAR_WIDTH = 18 * 16; // 18rem in px (approx, depends on root font-size)
+        if(overlay) overlay.addEventListener('click',()=>{ document.body.classList.remove('mobile-open'); document.body.style.overflow=''; sidebar.style.transform=''; sidebar.classList.remove('dragging'); });
+
+        let startX=0, startY=0, active=false, dragging=false, currentX=0;
+        const EDGE_ZONE=24, OPEN_THRESHOLD=60, CLOSE_THRESHOLD=-60;
+
+        function setSidebarTranslate(tx){ // tx in px where 0 is open, negative is hidden
+          if(!sidebar) return;
+          sidebar.style.transform = `translateX(${tx}px)`;
+        }
+
+        function onStart(e){
+          const t = (e.touches && e.touches[0]) || e;
+          startX = t.clientX; startY = t.clientY;
+          active = (startX <= EDGE_ZONE) || document.body.classList.contains('mobile-open');
+          dragging = false;
+        }
+
+        function onMove(e){
+          if(!active) return;
+          const t = (e.touches && e.touches[0]) || e;
+          const dx = t.clientX - startX;
+          const dy = t.clientY - startY;
+          if(Math.abs(dy) > 30 && !dragging){ // vertical scroll -> cancel gesture
+            active = false; return;
+          }
+          // begin horizontal dragging when movement is significant
+          if(!dragging && Math.abs(dx) > 8){
+            dragging = true; sidebar.classList.add('dragging');
+          }
+          if(dragging){
+            // if sidebar is closed, tx ranges from -width .. 0; compute tx accordingly
+            const isOpen = document.body.classList.contains('mobile-open');
+            let tx = isOpen ? Math.min(0, dx) : Math.min(0, -SIDEBAR_WIDTH + dx);
+            // clamp tx between -SIDEBAR_WIDTH and 0
+            tx = Math.max(-SIDEBAR_WIDTH, Math.min(0, tx));
+            setSidebarTranslate(tx);
+          }
+        }
+
+        function onEnd(e){
+          if(!active) return; active = false;
+          const t = (e.changedTouches && e.changedTouches[0]) || e;
+          const dx = t.clientX - startX;
+          const isOpen = document.body.classList.contains('mobile-open');
+          // determine final state
+          if(!isOpen && dx > OPEN_THRESHOLD){
+            document.body.classList.add('mobile-open'); document.body.style.overflow='hidden';
+            sidebar.style.transform = '';
+          } else if(isOpen && dx < CLOSE_THRESHOLD){
+            document.body.classList.remove('mobile-open'); document.body.style.overflow='';
+            sidebar.style.transform = '';
+          } else {
+            // restore to previous state
+            sidebar.style.transform = '';
+          }
+          sidebar.classList.remove('dragging');
+          dragging = false;
+        }
+
+        // Attach touch events with passive where appropriate
+        document.addEventListener('touchstart', onStart, {passive:true});
+        document.addEventListener('touchmove', onMove, {passive:true});
+        document.addEventListener('touchend', onEnd, {passive:true});
+        // mouse support for desktop testing
+        let mdown=false;
+        document.addEventListener('mousedown',(e)=>{ startX=e.clientX; startY=e.clientY; mdown = (startX <= EDGE_ZONE) || document.body.classList.contains('mobile-open'); });
+        document.addEventListener('mousemove',(e)=>{ if(!mdown) return; onMove(e); });
+        document.addEventListener('mouseup',(e)=>{ if(mdown) onEnd(e); mdown=false; });
+
+      })();
+    </script>
+</body>
+
+</html>

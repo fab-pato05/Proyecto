@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", () =>
 // =========
 // poliza.js
 // =========
-function initPoliza() {
+function initPoliza() 
+{
         const user = JSON.parse(localStorage.getItem("usuario"));
         const info = document.getElementById("info");
 
@@ -54,7 +55,9 @@ function initPoliza() {
           <p class="font-medium">$${(cot.monto !== undefined) ? cot.monto : '-'}</p>
         </div>
       `;
-        } else {
+        } 
+        else 
+          {
             info.innerHTML = "<p class='text-gray-500'>No hay póliza registrada.</p>";
         }
 

@@ -24,7 +24,7 @@
           <img src="img/LOGO_CS.jpg" alt="Logo de Círculo Seguro" class="w-12 h-12 rounded-full mr-3">
           <h1 class="text-xl font-bold text-gray-800">Círculo Seguro</h1>
         </div>
-        <button class="md:hidden text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
+        <button class="md:hidden text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded mobile-toggle-btn">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
@@ -41,6 +41,15 @@
       </div>
     </nav>
   </header>
+  <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+    <ul class="flex flex-col px-4 py-2 space-y-2">
+      <li><a href="CrearCuenta.html" class="block py-2">Crea tu cuenta</a></li>
+      <li><a href="Contacto.html" class="block py-2">Contacto</a></li>
+      <li><a href="Privacidad.html" class="block py-2">Privacidad</a></li>
+      <li><a href="Terminos.html" class="block py-2">Términos y Condiciones</a></li>
+      <li><a id="btn-descargar" href="Descarga.html" class="block py-2 text-blue-600">Descargar Círculo Seguro</a></li>
+    </ul>
+  </div>
 
   <!-- Contenido principal -->
   <main class="container mx-auto px-6 my-10">
@@ -220,5 +229,12 @@
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="Js/index.js"></script>
   <script type="module" src="./Js/main.js"></script>
+  <script>
+    (function(){
+      const btn=document.querySelector('.mobile-toggle-btn');
+      const menu=document.getElementById('mobile-menu');
+      if(btn && menu) btn.addEventListener('click',()=>menu.classList.toggle('hidden'));
+    })();
+  </script>
 </body>
 </html>

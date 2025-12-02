@@ -6,6 +6,25 @@
   <title>Admin — Configuración</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="../img/LOGO_CS.jpg" type="image/jpeg">
+  <style>
+    /* shared responsive rules */
+    @media (max-width:639px){
+      #sidebar{position:fixed; left:0; top:0; height:100%; transform:translateX(-100%); transition:transform .25s ease; z-index:40; width:18rem}
+      body.mobile-open #sidebar{transform:translateX(0)}
+      #mobile-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:30}
+      body.mobile-open #mobile-overlay{display:block}
+      main{padding:1rem}
+      .responsive-table{overflow-x:auto}
+    }
+    aside#sidebar{width:18rem;min-width:18rem;transition:width .25s ease}
+    body.sidebar-collapsed aside#sidebar{width:4.5rem;min-width:4.5rem;overflow:hidden}
+    body.sidebar-collapsed aside#sidebar .sidebar-brand h2,
+    body.sidebar-collapsed aside#sidebar .sidebar-brand .text-xs,
+    body.sidebar-collapsed aside#sidebar nav a{padding-left:0.75rem}
+    body.sidebar-collapsed aside#sidebar nav a > .label{display:none}
+    #sidebar-collapse-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;background:#e6eefb;color:#083e7a;border:none;cursor:pointer;font-weight:600;margin-right:8px}
+    @media (max-width:639px){#sidebar-collapse-btn{display:none}}
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans">
   <div class="flex">
@@ -48,6 +67,7 @@
               <select id="cfg-frequency" class="p-2 border rounded w-full">
                 <option value="day">Diaria</option>
                 <option value="weekly">Semanal</option>
+                <option value="monthly">Mensual</option>
                 <option value="instant">Instantánea</option>
               </select>
             </div>
@@ -101,5 +121,21 @@
     </main>
   </div>
   <script src="Admin.js"></script>
+  <div id="mobile-overlay" aria-hidden="true"></div>
+  <script>
+    (function(){
+      function applyState(){ if(localStorage.getItem('sidebarCollapsed')==='1') document.body.classList.add('sidebar-collapsed'); else document.body.classList.remove('sidebar-collapsed'); }
+      applyState();
+      const overlay=document.getElementById('mobile-overlay'); if(overlay) overlay.addEventListener('click',()=>{ document.body.classList.remove('mobile-open'); document.body.style.overflow=''; });
+      let startX=0, startY=0, active=false; const EDGE_ZONE=30, OPEN_THRESHOLD=60, CLOSE_THRESHOLD=-60;
+      function onStart(e){ const t=(e.touches&&e.touches[0])||e; startX=t.clientX; startY=t.clientY; active=(startX<=EDGE_ZONE)||document.body.classList.contains('mobile-open'); }
+      function onMove(e){ if(!active) return; const t=(e.touches&&e.touches[0])||e; const dx=t.clientX-startX, dy=t.clientY-startY; if(Math.abs(dy)>50){ active=false; return; } }
+      function onEnd(e){ if(!active) return; const t=(e.changedTouches&&e.changedTouches[0])||e; const dx=t.clientX-startX; if(!document.body.classList.contains('mobile-open') && dx>OPEN_THRESHOLD){ document.body.classList.add('mobile-open'); document.body.style.overflow='hidden'; } else if(document.body.classList.contains('mobile-open') && dx<CLOSE_THRESHOLD){ document.body.classList.remove('mobile-open'); document.body.style.overflow=''; } active=false; }
+      document.addEventListener('touchstart', onStart, {passive:true}); document.addEventListener('touchmove', onMove, {passive:true}); document.addEventListener('touchend', onEnd, {passive:true});
+      let mdown=false; document.addEventListener('mousedown',(e)=>{ startX=e.clientX; startY=e.clientY; mdown=(startX<=EDGE_ZONE)||document.body.classList.contains('mobile-open'); });
+      document.addEventListener('mousemove',(e)=>{ if(!mdown) return; const dx=e.clientX-startX; if(document.body.classList.contains('mobile-open')) return; if(dx>OPEN_THRESHOLD){ document.body.classList.add('mobile-open'); document.body.style.overflow='hidden'; mdown=false; } });
+      document.addEventListener('mouseup',()=>{ mdown=false; });
+    })();
+  </script>
  </body>
  </html>

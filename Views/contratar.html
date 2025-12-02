@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Contratar Seguro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <script src="js/contratar.js" defer></script>
@@ -16,12 +17,13 @@
 
     <p class="text-gray-600 mb-6">El número de cotización tendrá una vigencia de <strong>24 horas</strong>.</p>
 
-    <div class="flex justify-center gap-4">
-      <button onclick="window.location.href='Descarga.html'" 
-        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Ver cotización</button>
+    <div class="flex flex-col sm:flex-row justify-center gap-4">
+      <button onclick="window.location.href='poliza.html'" 
+        class="w-full sm:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Mira tu poliza</button>
 
       <button onclick="window.location.href='Index.html'" 
-        class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition">Ir al Inicio</button>
+        class="w-full sm:w-auto bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition">Ir al Inicio</button>
     </div>
+  </div>
 </body>
 </html>

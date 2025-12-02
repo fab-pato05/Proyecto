@@ -7,7 +7,9 @@
         {
         pwdInput.type = 'text';
         toggleBtn.textContent = 'Ocultar';
-      } else {
+      } 
+      else 
+        {
         pwdInput.type = 'password';
         toggleBtn.textContent = 'Mostrar';
       }
