@@ -1,5 +1,3 @@
-
-
 //script para Formulario Crear Cuenta 
 const form = document.getElementById("miFormulario");
 form.addEventListener("submit", function (event) 

@@ -17,14 +17,14 @@
     const form = document.getElementById('registerForm');
     const mensaje = document.getElementById('mensaje');
     const submitBtn = document.getElementById('submitBtn');
-
-    form.addEventListener('submit', async (e) => 
+    // Manejar envío del formulario
+    form.addEventListener('submit', async (e) =>
       {
       e.preventDefault();
       submitBtn.disabled = true;
       submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
       mensaje.textContent = '';
-
+      // Preparar datos del formulario
       const formData = new FormData(form);
       const data = new URLSearchParams(formData);
 
@@ -36,7 +36,7 @@
         }
       );
         const result = await res.json();
-
+        // Mostrar mensaje según resultado
         if (result.ok)
           {
           mensaje.className = 'text-center mt-4 text-sm font-medium text-green-600';
@@ -50,7 +50,8 @@
           submitBtn.disabled = false;
           submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
         }
-      } catch (err) 
+      } 
+      catch (err) 
       {
         console.error(err);
         mensaje.className = 'text-center mt-4 text-sm font-medium text-red-600';
