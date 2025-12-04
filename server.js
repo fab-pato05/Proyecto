@@ -1,4 +1,4 @@
-// ===== IMPORTS =====
+//  IMPORTS 
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -19,7 +19,7 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-// ===== SENDGRID - NOTIFICACIONES =====
+// SENDGRID - NOTIFICACIONES 
 import sgMail from "@sendgrid/mail";
 
 const { Pool } = pkg;
@@ -38,7 +38,7 @@ app.use(cors({
     allowedHeaders: ["Content-Type"]
 }));
 
-// ===== Helmet + rate limit + middlewares =====
+//  Helmet + rate limit + middlewares
 app.use(helmet({
     contentSecurityPolicy: {
         useDefaults: true,
@@ -53,18 +53,18 @@ app.set('trust proxy', 1);
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
 
 
-// ===== Static folders =====
+// Static folders 
 app.use("/js", express.static(path.join(process.cwd(), "Views/Js")));
 app.use("/img", express.static(path.join(process.cwd(), "Views/img")));
 app.use("/css", express.static(path.join(process.cwd(), "Views/css")));
 app.use("/models", express.static(path.join(process.cwd(), "models")));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// === ENCRIPTACIÓN AES-256 ===
+// ENCRIPTACIÓN AES-256 
 const ALGORITHM = "aes-256-cbc";
 const KEY = process.env.ENCRYPTION_KEY ? Buffer.from(process.env.ENCRYPTION_KEY, "hex") : null;
 if (!KEY || KEY.length !== 32) {
-    console.warn("⚠️ ENCRYPTION_KEY no está configurada correctamente. Algunas funciones de encriptación fallarán si no se establece una key hex de 64 caracteres (32 bytes).\nContinuando en modo degradado.");
+    console.warn(" ENCRYPTION_KEY no está configurada correctamente. Algunas funciones de encriptación fallarán si no se establece una key hex de 64 caracteres (32 bytes).\nContinuando en modo degradado.");
 }
 
 function encryptBuffer(buffer) {
@@ -83,7 +83,7 @@ function decryptBuffer(base64Data, ivHex) {
     return Buffer.concat([decipher.update(encryptedBuffer), decipher.final()]);
 }
 
-// ===== CONEXIÓN A NEON (PostgreSQL) =====
+// CONEXIÓN A NEON (PostgreSQL) 
 const pool = new Pool({
     user: process.env.NEON_USER,
     host: process.env.NEON_HOST,
@@ -97,10 +97,10 @@ const pool = new Pool({
 
 // Probar conexión al iniciar
 pool.connect()
-    .then(client => { client.release(); console.log("✅ Conexión a PostgreSQL OK"); })
-    .catch(err => console.error("❌ Error al conectar a PostgreSQL:", err));
+    .then(client => { client.release(); console.log(" Conexión a PostgreSQL OK"); })
+    .catch(err => console.error(" Error al conectar a PostgreSQL:", err));
 
-// ===== REDIS =====
+// REDIS 
 const redisClient = createClient({
     url: process.env.REDIS_URL,
     socket: {
@@ -110,9 +110,9 @@ const redisClient = createClient({
     }
 });
 
-redisClient.on("error", err => console.error("❌ Redis error:", err));
-redisClient.on("connect", () => console.log("✅ Redis conectado"));
-redisClient.on("ready", () => console.log("✅ Redis listo para usar"));
+redisClient.on("error", err => console.error(" Redis error:", err));
+redisClient.on("connect", () => console.log("Redis conectado"));
+redisClient.on("ready", () => console.log(" Redis listo para usar"));
 
 // Función async para conectar Redis
 async function conectarRedis() {
@@ -121,20 +121,27 @@ async function conectarRedis() {
             await redisClient.connect();
         }
     } catch (err) {
-        console.error("❌ Error conectando Redis:", err);
+        console.error(" Error conectando Redis:", err);
     }
 }
 
-// ===== AWS REKOGNITION (usando SDK v3 para consistencia) =====
-const rekognitionClient = process.env.AWS_REGION ? 
-                    new RekognitionClient({ region: process.env.AWS_REGION }) : null;
+//  AWS REKOGNITION (usando SDK v3 para consistencia)
+const rekognitionClient = process.env.AWS_REGION ?
+    new RekognitionClient({ region: process.env.AWS_REGION }) : null;
+const client = new RekognitionClient({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
+});
 
-// Configuración de ffprobe/ffmpeg [cite: 268]
+// Configuración de ffprobe/ffmpeg
 const localFFprobeFolder = process.env.FFMPEG_BIN_PATH || 'C:/Users/marjorie.guzman/Downloads/ffmpeg/ffmpeg-8.0-essentials_build/bin'; // Se usa una variable de entorno o el path local.
 process.env.FFPROBE_PATH = path.join(localFFprobeFolder, "ffprobe.exe"); // [cite: 268]
 ffmpeg.setFfprobePath(process.env.FFPROBE_PATH); // [cite: 268]
 
-// ===== MULTER - UPLOAD FILES =====
+//MULTER - UPLOAD FILES 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = path.join(process.cwd(), "uploads");
@@ -157,18 +164,7 @@ const upload = multer({
     }
 });
 
-// ===== NODEMAILER =====
-if (process.env.SENDGRID_API_KEY) sgMail.setApiKey(process.env.SENDGRID_API_KEY); // [cite: 222, 334]
-async function enviarCorreoNotificacion(to, subject, html) {
-    if (!process.env.FROM_EMAIL) return console.error("❌ FROM_EMAIL no configurado."); // [cite: 223, 335]
-    const msg = { to, from: process.env.FROM_EMAIL, subject, html }; // [cite: 335]
-    try {
-        await sgMail.send(msg); // [cite: 224, 336]
-        console.log("📨 Correo enviado a:", to); // [cite: 224, 336]
-    } catch (err) {
-        console.error("❌ Error enviando correo:", err.response?.body || err); // [cite: 225, 337]
-    }
-}
+
 let transporter = null;
 if (process.env.SMTP_HOST && process.env.SMTP_USER) {
     transporter = nodemailer.createTransport({
@@ -184,50 +180,48 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER) {
     });
 }
 
-// ===== FUNCIONES AUXILIARES =====
+// FUNCIONES AUXILIARES
 function safeUnlink(p) {
     try { if (p && fs.existsSync(p)) fs.unlinkSync(p); } catch (e) { /* ignore */ }
 }
 function nowISO() { return new Date().toISOString(); }
 // LIMPIEZA OCR
-function limpiarTextoOCR(textoCrudo) { // [cite: 213]
-    let textoLimpio = textoCrudo.replace(/[|:;—]/g, ' '); // [cite: 214]
-    textoLimpio = textoLimpio.replace(/[.,]/g, ''); // [cite: 214]
-    textoLimpio = textoLimpio.replace(/[\[\]]/g, ' '); // [cite: 214]
-    textoLimpio = textoLimpio.replace(/^[£A]/g, ''); // [cite: 214]
-    textoLimpio = textoLimpio.replace(/\s+/g, ' '); // [cite: 214]
-    return textoLimpio.trim(); // [cite: 215]
+function limpiarTextoOCR(textoCrudo) { 
+    let textoLimpio = textoCrudo.replace(/[|:;—]/g, ' ');
+    textoLimpio = textoLimpio.replace(/[\[\]]/g, ' '); 
+    textoLimpio = textoLimpio.replace(/^[£A]/g, ''); 
+    textoLimpio = textoLimpio.replace(/\s+/g, ' '); 
+    return textoLimpio.trim(); 
 }
 
 
 // EXTRAER IDENTIFICADOR
-function extraerIdentificadorDesdeOCR(ocrText) { // [cite: 215, 339]
-    if (!ocrText) return null; // [cite: 215, 339]
-    const t = ocrText.replace(/\s+/g, ' '); // [cite: 216, 340]
+function extraerIdentificadorDesdeOCR(ocrText) { 
+    if (!ocrText) return null; 
+    const t = ocrText.replace(/\s+/g, ' ');
     // DUI
-    const duiMatch = t.match(/\b(\d{8}-\d)\b/); // [cite: 216, 341]
-    if (duiMatch) return { tipo: 'DUI', valor: duiMatch[0] }; // [cite: 216, 341]
+    const duiMatch = t.match(/\b(\d{8}-\d)\b/); 
+    if (duiMatch) return { tipo: 'DUI', valor: duiMatch[0] }; 
     // Pasaporte
-    const pasaporteMatch = t.match(/\b([A-Z0-9]{6,9})\b/); // [cite: 217, 342]
-    if (pasaporteMatch) return { tipo: 'Pasaporte', valor: pasaporteMatch[0] }; // [cite: 217, 342]
-    return null; // [cite: 217, 343]
+    const pasaporteMatch = t.match(/\b([A-Z0-9]{6,9})\b/); 
+    if (pasaporteMatch) return { tipo: 'Pasaporte', valor: pasaporteMatch[0] };
+    return null; 
 }
 
 
 // JWT AUTH
-function authenticateJWT(req, res, next) { // [cite: 218]
-    const authHeader = req.headers.authorization; // [cite: 218]
-    if (authHeader) { // [cite: 219]
-        const token = authHeader.split(' ')[1]; // [cite: 219]
-        if (!process.env.JWT_SECRET) return res.status(500).json({ ok: false, message: 'Error interno JWT.' }); // [cite: 220]
-        jwt.verify(token, process.env.JWT_SECRET, (err, user) => { // [cite: 221]
-            if (err) return res.status(403).json({ ok: false, message: 'Token inválido o expirado.' }); // [cite: 221]
-            req.user = user; // [cite: 221]
-            next(); // [cite: 221]
+function authenticateJWT(req, res, next) {
+    const authHeader = req.headers.authorization; 
+    if (authHeader) { 
+        const token = authHeader.split(' ')[1]; 
+        if (!process.env.JWT_SECRET) return res.status(500).json({ ok: false, message: 'Error interno JWT.' }); 
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => { 
+            if (err) return res.status(403).json({ ok: false, message: 'Token inválido o expirado.' }); 
+            next(); 
         });
-    } else res.status(401).json({ ok: false, message: 'Acceso denegado. Token requerido.' }); // [cite: 222]
+    } else res.status(401).json({ ok: false, message: 'Acceso denegado. Token requerido.' }); 
 }
-// ===== FUNCIONES DE PROCESAMIENTO =====
+// FUNCIONES DE PROCESAMIENTO
 
 // PROCESAR DOCUMENTO (MEJORA IMAGEN)
 async function procesarDocumento(entrada, salida) {
@@ -247,7 +241,7 @@ async function procesarDocumento(entrada, salida) {
 
 // OCR PARA DOCUMENTO
 async function realizarOCR(rutaImagen) {
-    // 1️⃣ Verificar que el archivo existe
+    // 1️ Verificar que el archivo existe
     if (!rutaImagen || !fs.existsSync(rutaImagen)) {
         console.warn("⚠️ Archivo no encontrado para OCR:", rutaImagen);
         return "";
@@ -255,7 +249,7 @@ async function realizarOCR(rutaImagen) {
     const worker = createWorker();
     try {
         await worker.load();
-        await worker.loadLanguage("spa"); 
+        await worker.loadLanguage("spa");
         await worker.initialize("spa");
 
         const { data: { text } } = await worker.recognize(rutaImagen);
@@ -269,52 +263,52 @@ async function realizarOCR(rutaImagen) {
     }
 }
 
-async function compararRostros(docBuffer, selfieBuffer, threshold = 80) { // [cite: 238, 282]
-    if (!rekognitionClient) return { ok: false, similarity: 0 }; // [cite: 282]
+async function compararRostros(docBuffer, selfieBuffer, threshold = 80) { 
+    if (!rekognitionClient) return { ok: false, similarity: 0 }; 
     const params = { SourceImage: { Bytes: docBuffer }, TargetImage: { Bytes: selfieBuffer }, SimilarityThreshold: threshold }; // Se usa el doc buffer/selfie buffer [cite: 238, 283]
-    const command = new CompareFacesCommand(params); // [cite: 239, 283]
+    const command = new CompareFacesCommand(params); 
     try {
-        const response = await rekognitionClient.send(command); // [cite: 239, 284]
-        if (response.FaceMatches && response.FaceMatches.length > 0) { // [cite: 239, 285]
-            const similarity = response.FaceMatches[0].Similarity; // [cite: 286]
-            return { ok: similarity >= threshold, similarity }; // [cite: 239, 286]
+        const response = await rekognitionClient.send(command); 
+        if (response.FaceMatches && response.FaceMatches.length > 0) { 
+            const similarity = response.FaceMatches[0].Similarity; 
+            return { ok: similarity >= threshold, similarity }; 
         }
-        return { ok: false, similarity: 0 }; // [cite: 240, 287]
+        return { ok: false, similarity: 0 }; 
     } catch (err) {
-        console.error("❌ Error compararRostros:", err); // [cite: 287]
-        return { ok: false, similarity: 0 }; // [cite: 288]
+        console.error("❌ Error compararRostros:", err); 
+        return { ok: false, similarity: 0 }; 
     }
 }
 
 // EXTRAER FRAME DE VIDEO
-function extraerFrameVideo(videoPath) { // [cite: 293]
+function extraerFrameVideo(videoPath) { 
     return new Promise((resolve, reject) => {
-        const tempPng = path.join(path.dirname(videoPath), `${uuidv4()}.png`); // [cite: 293]
+        const tempPng = path.join(path.dirname(videoPath), `${uuidv4()}.png`); 
         ffmpeg(videoPath)
-            .screenshots({ timestamps: ['50%'], filename: path.basename(tempPng), folder: path.dirname(tempPng) }) // [cite: 294]
+            .screenshots({ timestamps: ['50%'], filename: path.basename(tempPng), folder: path.dirname(tempPng) }) 
             .on('end', () => {
                 fs.readFile(tempPng, (err, data) => {
-                    if (err) return reject(err); // [cite: 294]
-                    safeUnlink(tempPng); // [cite: 294]
+                    if (err) return reject(err); 
+                    safeUnlink(tempPng); 
                     resolve(data);
                 });
             })
             .on('error', (err) => {
-                safeUnlink(tempPng); // [cite: 295]
+                safeUnlink(tempPng); 
                 reject(err);
-            }); // [cite: 295]
-    }); // [cite: 296]
+            }); 
+    }); 
 }
 
 // EXTRAER ROSTRO DEL DOCUMENTO (Se usa lógica de crop basada en porcentajes, típica para documentos)
-async function extraerRostroDocumento(docPath) { // [cite: 296]
-    const image = sharp(docPath); // [cite: 297]
-    const metadata = await image.metadata(); // [cite: 297]
-    const width = Math.max(100, Math.floor((metadata.width || 400) * 0.3)); // [cite: 297]
-    const height = Math.max(100, Math.floor((metadata.height || 400) * 0.45)); // [cite: 298]
-    const left = Math.max(0, Math.floor((metadata.width || 400) * 0.35)); // [cite: 298]
-    const top = Math.max(0, Math.floor((metadata.height || 400) * 0.18)); // [cite: 299]
-    return await image.extract({ left, top, width, height }).toBuffer(); // [cite: 299]
+async function extraerRostroDocumento(docPath) { 
+    const image = sharp(docPath); 
+    const metadata = await image.metadata(); 
+    const width = Math.max(100, Math.floor((metadata.width || 400) * 0.3)); 
+    const height = Math.max(100, Math.floor((metadata.height || 400) * 0.45)); 
+    const left = Math.max(0, Math.floor((metadata.width || 400) * 0.35)); 
+    const top = Math.max(0, Math.floor((metadata.height || 400) * 0.18)); 
+    return await image.extract({ left, top, width, height }).toBuffer(); 
 }
 // VERIFICAR DOCUMENTO
 async function verificarDocumento(imagenPath) {
@@ -338,17 +332,17 @@ async function verificarDocumento(imagenPath) {
 
 // GUARDAR VERIFICACIÓN - Corregida para incluir 'acciones' y 13 parámetros
 async function guardarVerificacion({
-    user_id = null, 
-    ocrText = null, 
-    similarityScore = null, 
+    user_id = null,
+    ocrText = null,
+    similarityScore = null,
     match_result = false,
-    liveness = false, 
-    edad_valida = null, 
-    documento_path = null, 
+    liveness = false,
+    edad_valida = null,
+    documento_path = null,
     selfie_paths = null,
-    ip = null, 
-    dispositivo = null, 
-    resultado_general = null, 
+    ip = null,
+    dispositivo = null,
+    resultado_general = null,
     notificado = false
 }) {
     const q = `
@@ -374,119 +368,119 @@ async function guardarVerificacion({
         return null;
     }
 }
-// ===== RUTAS / ENDPOINTS =====
+//  RUTAS / ENDPOINTS
 
 // Página principal
 app.get('/', (req, res) => res.sendFile(path.join(process.cwd(), 'Views/Index.html')));
 
-// 🔐 LOGIN
-app.post('/login', async (req, res) => { // [cite: 226, 320]
+// LOGIN
+app.post('/login', async (req, res) => { 
     try {
         const { correo, contrasena } = req.body;
         const resultado = await pool.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
-        // Se usa la respuesta JSON del primer código para consistencia de API [cite: 227]
-        if (resultado.rows.length === 0) return res.status(404).json({ ok: false, message: "Usuario no encontrado" }); // [cite: 227, 320]
+        // Se usa la respuesta JSON  para consistencia de API 
+        if (resultado.rows.length === 0) return res.status(404).json({ ok: false, message: "Usuario no encontrado" }); 
         const usuario = resultado.rows[0];
-        const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena); // [cite: 227, 320]
+        const passwordValida = await bcrypt.compare(contrasena, usuario.contrasena); 
 
-        if (!passwordValida) return res.status(401).json({ ok: false, message: "Contraseña incorrecta" }); // [cite: 227]
+        if (!passwordValida) return res.status(401).json({ ok: false, message: "Contraseña incorrecta" }); 
 
         let token = null;
         if (process.env.JWT_SECRET) {
-            token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '2h' }); // [cite: 321]
+            token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '2h' });
         }
 
-        return res.json({ ok: true, token, redirect: "/Views/cotizador.html", user_id: usuario.id }); // [cite: 227]
+        return res.json({ ok: true, token, redirect: "/Views/cotizador.html", user_id: usuario.id });
     } catch (error) {
-        console.error(error); // [cite: 228, 323]
-        res.status(500).json({ ok: false, message: "Error en el inicio de sesión" }); // Se usa la respuesta JSON [cite: 228, 323]
+        console.error(error); 
+        res.status(500).json({ ok: false, message: "Error en el inicio de sesión" }); // Se usa la respuesta JSON 
     }
 });
 
-// 👤 REGISTRAR USUARIO
-app.post('/guardar-registerForm', async (req, res) => { // [cite: 317]
+//  REGISTRAR USUARIO
+app.post('/guardar-registerForm', async (req, res) => { 
     try {
         const { nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, contrasena } = req.body;
         if (!correo || !contrasena) return res.status(400).json({ ok: false, message: 'correo y contraseña son requeridos' }); // [cite: 317]
-        const hashedPassword = await bcrypt.hash(contrasena, 10); // [cite: 317]
+        const hashedPassword = await bcrypt.hash(contrasena, 10); 
         const query = `
             INSERT INTO usuarios
             (nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numerodocumento, contrasena)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id;
-        `; // [cite: 318]
+        `; 
         const values = [nombres, apellidos, sexo, correo, celular, fechanacimiento, tipodocumento, numeroDocumento, hashedPassword]; // [cite: 318]
-        const r = await pool.query(query, values); // [cite: 318]
-        res.status(200).json({ ok: true, id: r.rows[0].id }); // [cite: 318]
+        const r = await pool.query(query, values); 
+        res.status(200).json({ ok: true, id: r.rows[0].id }); 
     } catch (error) {
-        console.error("❌ Error al registrar usuario:", error); // [cite: 319]
-        res.status(500).json({ ok: false, message: "Error al registrar usuario" }); // [cite: 319]
+        console.error("❌ Error al registrar usuario:", error); 
+        res.status(500).json({ ok: false, message: "Error al registrar usuario" }); 
     }
 });
 
 
-// 📄 GUARDAR CONTRATACIÓN
-app.post('/guardar-contratacion', authenticateJWT, async (req, res) => { // Se mantiene el JWT auth de la primera versión [cite: 229]
+//  GUARDAR CONTRATACIÓN
+app.post('/guardar-contratacion', authenticateJWT, async (req, res) => { // Se mantiene el JWT auth 
     try {
-        const usuario_id = req.user.id; // Se usa el ID del token [cite: 229]
+        const usuario_id = req.user.id; // Se usa el ID del token 
         const { nombre_completo, correo, celular } = req.body;
         const usuarioExiste = await pool.query('SELECT * FROM usuarios WHERE id=$1', [usuario_id]);
-        if (usuarioExiste.rows.length === 0) return res.status(404).json({ ok: false, message: 'Usuario no existe' }); // Se usa respuesta JSON [cite: 229, 332]
-        await pool.query(`INSERT INTO contrataciones (usuario_id, nombre_completo, correo, celular) VALUES($1,$2,$3,$4)`, [usuario_id, nombre_completo, correo, celular]); // [cite: 230, 333]
-        res.json({ ok: true, message: 'Contratación registrada correctamente' }); // Se usa respuesta JSON [cite: 230, 333]
+        if (usuarioExiste.rows.length === 0) return res.status(404).json({ ok: false, message: 'Usuario no existe' }); // Se usa respuesta JSON 
+        await pool.query(`INSERT INTO contrataciones (usuario_id, nombre_completo, correo, celular) VALUES($1,$2,$3,$4)`, [usuario_id, nombre_completo, correo, celular]);
+        res.json({ ok: true, message: 'Contratación registrada correctamente' }); // Se usa respuesta JSON 
     } catch (err) {
-        console.error(err); // [cite: 230, 333]
-        res.status(500).json({ ok: false, message: 'Error al registrar contratación' }); // Se usa respuesta JSON [cite: 230, 333]
+        console.error(err); 
+        res.status(500).json({ ok: false, message: 'Error al registrar contratación' }); // Se usa respuesta JSON 
     }
 });
 
 
-// 💰 GUARDAR COTIZACIÓN
-app.post('/guardar-cotizacionForm', async (req, res) => { // [cite: 323]
+//  GUARDAR COTIZACIÓN
+app.post('/guardar-cotizacionForm', async (req, res) => {
     try {
-        const { id, monto_asegurar, cesion_beneficios, poliza } = req.body; // [cite: 323]
-        if (!id) return res.status(400).json({ ok: false, message: 'id de usuario requerido' }); // [cite: 324]
-        const usuarioRes = await pool.query("SELECT nombres, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]); // [cite: 324]
-        if (usuarioRes.rows.length === 0) return res.status(404).json({ ok: false, message: 'Usuario no encontrado' }); // [cite: 324]
-        const usuario = usuarioRes.rows[0]; // [cite: 324]
+        const { id, monto_asegurar, cesion_beneficios, poliza } = req.body; 
+        if (!id) return res.status(400).json({ ok: false, message: 'id de usuario requerido' }); 
+        const usuarioRes = await pool.query("SELECT nombres, apellidos, correo, celular FROM usuarios WHERE id=$1", [id]);
+        if (usuarioRes.rows.length === 0) return res.status(404).json({ ok: false, message: 'Usuario no encontrado' }); 
+        const usuario = usuarioRes.rows[0]; 
         const insertQuery = `
             INSERT INTO formulariocotizacion
             (usuario_id, nombre, primerapellido, segundoapellido, celular, correo, monto_asegurar, cesion_beneficios, poliza)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
             RETURNING *;
-        `; // [cite: 325]
-        const values = [id, usuario.nombres || '', usuario.apellidos || '', '', usuario.celular || '', usuario.correo || '', monto_asegurar, cesion_beneficios, poliza]; // [cite: 325]
-        const result = await pool.query(insertQuery, values); // 
+        `; 
+        const values = [id, usuario.nombres || '', usuario.apellidos || '', '', usuario.celular || '', usuario.correo || '', monto_asegurar, cesion_beneficios, poliza]; 
+        const result = await pool.query(insertQuery, values); 
 
         if (transporter) { // 
             await transporter.sendMail({
                 from: process.env.SMTP_FROM || process.env.EMAIL_USER,
                 to: usuario.correo,
                 subject: 'Cotización Registrada',
-                html: `<h2>Hola ${usuario.nombres || ''},</h2><p>Tu cotización ha sido registrada correctamente:</p><ul><li>Monto a asegurar: $${monto_asegurar}</li><li>Cesión de beneficios: ${cesion_beneficios}</li><li>Póliza: ${poliza}</li></ul>` // [cite: 327, 328]
-            }); // [cite: 329]
+                html: `<h2>Hola ${usuario.nombres || ''},</h2><p>Tu cotización ha sido registrada correctamente:</p><ul><li>Monto a asegurar: $${monto_asegurar}</li><li>Cesión de beneficios: ${cesion_beneficios}</li><li>Póliza: ${poliza}</li></ul>`
+            }); 
         }
 
         res.json({ ok: true, message: 'Cotización guardada y correo enviado (si configurado)', data: result.rows[0] }); // [cite: 329]
     } catch (err) {
-        console.error(err); // [cite: 330, 331]
-        res.status(500).json({ ok: false, message: 'Error al guardar cotización o enviar correo' }); // [cite: 331]
+        console.error(err); 
+        res.status(500).json({ ok: false, message: 'Error al guardar cotización o enviar correo' }); 
     }
 });
 
 
-// 💾 GUARDAR REFERENCIA (REDIS)
-app.post("/guardar-referencia", async (req, res) => { // [cite: 315]
+//  GUARDAR REFERENCIA (REDIS)
+app.post("/guardar-referencia", async (req, res) => { 
     try {
         const { usuario_id, imagen_base64 } = req.body;
-        if (!usuario_id || !imagen_base64) { return res.json({ ok: false, mensaje: "Falta de datos" }); } // [cite: 315]
+        if (!usuario_id || !imagen_base64) { return res.json({ ok: false, mensaje: "Falta de datos" }); } 
 
         await conectarRedis(); // Se asegura la conexión
 
-        if (!redisClient.isOpen) { return res.json({ ok: false, mensaje: "Servicio temporal no disponible" }); } // [cite: 316]
+        if (!redisClient.isOpen) { return res.json({ ok: false, mensaje: "Servicio temporal no disponible" }); } 
 
-        // Expira en 300 segundos (5 minutos) [cite: 316]
-        await redisClient.setEx(`REF:${usuario_id}`, 300, imagen_base64); // [cite: 316]
-        return res.json({ ok: true, mensaje: "Rostro de referencia guardado temporalmente" }); // [cite: 316]
+        // Expira en 300 segundos (5 minutos) 
+        await redisClient.setEx(`REF:${usuario_id}`, 300, imagen_base64); 
+        return res.json({ ok: true, mensaje: "Rostro de referencia guardado temporalmente" }); 
     } catch (err) {
         console.error("Error guardando en Redis:", err);
         return res.status(500).json({ ok: false, mensaje: "Error al guardar referencia" });
@@ -514,22 +508,10 @@ async function enviarCorreoNotificacion(to, subject, html) {
 
     try {
         await sgMail.send(msg);
-        console.log("📨 Correo enviado a:", to);
+        console.log(" Correo enviado a:", to);
     } catch (err) {
         console.error("❌ Error enviando correo:", err);
     }
-}
-function extraerIdentificadorDesdeOCR(ocrText) { // <--- ESTA FUNCIÓN TAMBIÉN
-    // Implementación simple de ejemplo: buscar patrón de DUI (########-#) o pasaporte (alfanumérico)
-    if (!ocrText) return null;
-    const t = ocrText.replace(/\s+/g, ' ');
-    // buscar DUI estilo salvadoreño (8 dígitos guion 1 dígito)
-    const duiMatch = t.match(/\b(\d{8}-\d)\b/);
-    if (duiMatch) return { tipo: 'DUI', valor: duiMatch[0] };
-    // buscar patrón de pasaporte (al menos 6-9 alfanum)
-    const pasaporteMatch = t.match(/\b([A-Z0-9]{6,9})\b/);
-    if (pasaporteMatch) return { tipo: 'Pasaporte', valor: pasaporteMatch[0] };
-    return null;
 }
 
 
@@ -546,13 +528,12 @@ app.post('/verificar-identidad', upload.fields([
     let correo_usuario = null;
     let nombre_usuario = null;
     let verificationId = null;
-    const MAX_INTENTOS = 5;          // 🔒 Límite de intentos por usuario
-const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
+    const MAX_INTENTOS = 5;          //  Límite de intentos por usuario
+    const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
 
     try {
-        // =========================================================
         //  1. VALIDAR ID DE USUARIO Y LÍMITE DE INTENTOS (REDIS)
-        // =========================================================
+
         const userId = req.body.user_id;
         if (!userId) {
             return res.status(400).json({ exito: false, mensaje: "Falta el ID de usuario" });
@@ -581,9 +562,9 @@ const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
             return res.status(404).json({ exito: false, mensaje: "Usuario no encontrado" });
         }
 
-        // =========================================================
-        //  2. VALIDACIÓN INICIAL DEL DOCUMENTO (Se omite código por brevedad)
-        // =========================================================
+
+        //  2. VALIDACIÓN INICIAL DEL DOCUMENTO 
+
         if (!req.files?.doc?.[0]) {
             return res.status(400).json({ exito: false, mensaje: 'Documento no enviado' });
         }
@@ -679,18 +660,15 @@ const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
             }
         }
 
-        // =========================================================
         //  9. REGISTRAR INTENTO EN REDIS 
-        // =========================================================
-        const nuevosIntentos = await redisClient.incr(key); // ¡Solo un incremento!
+
+        const nuevosIntentos = await redisClient.incr(key); // Solo un incremento
         // Solo establecer expire si la clave es nueva (si llegó a 1 -> recién creada)
         if (nuevosIntentos === 1) {
             await redisClient.expire(key, EXPIRACION_INTENTOS); // segundos
         }
-
-        // =======================
         //  10. GUARDAR EN BD
-        // =======================
+
         verificationId = await guardarVerificacion({
             user_id: userId,
             ocrText,
@@ -709,11 +687,11 @@ const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
 
         console.log("Verificación guardada con id:", verificationId);
 
-        // =========================================================
-        //   11. NOTIFICACIONES AUTOMÁTICAS (MOVIDO DENTRO DEL TRY)
-        // =========================================================
 
-        // ✔ ÉXITO
+        //   11. NOTIFICACIONES AUTOMÁTICAS (MOVIDO DENTRO DEL TRY)
+
+
+        //  ÉXITO
         if (rostroCoincide && correo_usuario) {
             await enviarCorreoNotificacion(
                 correo_usuario,
@@ -724,7 +702,7 @@ const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
             );
         }
 
-        // ❌ FALLO
+        //  FALLO
         if (!rostroCoincide && correo_usuario) {
             await enviarCorreoNotificacion(
                 correo_usuario,
@@ -735,7 +713,7 @@ const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
             );
         }
 
-        // ⚠ Revisión manual (opcional)
+        //  Revisión manual (opcional)
         if (similarityScore !== null && similarityScore < 50) {
             await enviarCorreoNotificacion(
                 process.env.FROM_EMAIL, // Admin o correo del sistema
@@ -744,14 +722,13 @@ const EXPIRACION_INTENTOS = 86400; // 24 horas en segundos
             );
         }
 
-        // =========================================================
+
         //  12. RESPUESTA FINAL (MOVIDO DENTRO DEL TRY)
-        // =========================================================
         return res.json({
             exito: rostroCoincide,
             mensaje: rostroCoincide
-                ? `✅ Verificación exitosa (Similitud: ${similarityScore?.toFixed(2)}%)`
-                : "❌ Rostro no coincide con el documento",
+                ? ` Verificación exitosa (Similitud: ${similarityScore?.toFixed(2)}%)`
+                : " Rostro no coincide con el documento",
             id_verificacion: verificationId,
             match: rostroCoincide,
             score: similarityScore,
@@ -781,43 +758,43 @@ async function iniciarServidor() {
 
         // Luego iniciar servidor Express
         app.listen(PORT, () => {
-            console.log(`🚀 Servidor activo en http://localhost:${PORT}`);
-            console.log(`✅ PostgreSQL: Conectado`);
-            console.log(`✅ Redis: ${redisClient.isReady ? 'Conectado' : 'Desconectado (continuando sin caché)'}`);
+            console.log(` Servidor activo en http://localhost:${PORT}`);
+            console.log(` PostgreSQL: Conectado`);
+            console.log(` Redis: ${redisClient.isReady ? 'Conectado' : 'Desconectado (continuando sin caché)'}`);
         });
     } catch (err) {
-        console.error("❌ Error al iniciar servidor:", err);
+        console.error(" Error al iniciar servidor:", err);
         process.exit(1);
     }
 }
 
 // Manejar cierre graceful 
 process.on('SIGINT', async () => {
-    console.log('\n🛑 Cerrando conexiones...');
+    console.log('\n Cerrando conexiones...');
     try {
         // Cerrar PostgreSQL si está conectado
         if (pool) {
             await pool.end();
-            console.log('✅ PostgreSQL cerrado');
+            console.log(' PostgreSQL cerrado');
         }
 
         // Cerrar Redis solo si está abierto
         if (redisClient && redisClient.isOpen) {
             await redisClient.quit();
-            console.log('✅ Redis cerrado');
+            console.log(' Redis cerrado');
             // Esperar un poco para permitir cierre TCP limpio
             await new Promise(resolve => setTimeout(resolve, 300));
         }
 
-        console.log('✅ Conexiones cerradas correctamente');
+        console.log(' Conexiones cerradas correctamente');
         process.exit(0);
     } catch (err) {
-        console.error('❌ Error al cerrar:', err);
+        console.error(' Error al cerrar:', err);
         process.exit(1);
     }
 });
 
-// === Middleware global de errores ===
+// Middleware global de errores 
 app.use((err, req, res, next) => {
     console.error("Error no capturado:", err);
     if (!res.headersSent) {
