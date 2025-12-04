@@ -1,11 +1,5 @@
 # Sistema de Pruebas de Vida (Liveness Detection)
 
-## Introducción
-
-Este proyecto consiste en el **diseño e implementación de un sistema de pruebas de vida (liveness detection)**, cuyo propósito es verificar la identidad de una persona en tiempo real. La solución valida que el usuario esté presente, sea quien dice ser y no se trate de un intento de fraude mediante fotos, videos pregrabados o suplantación.
-
-El objetivo principal es **prevenir fraudes de identidad**, especialmente en procesos que requieren autenticación segura, utilizando **biometría, inteligencia artificial y análisis de comportamiento**.
-
 ##  Alcance del Sistema
 
 El sistema está diseñado para:
