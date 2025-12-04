@@ -104,7 +104,7 @@ Redis es usado para:
 * Mantener logs recientes de verificación.
 
 
-## 4. Resumen de Funcionalidades
+##  Resumen de Funcionalidades
 
 ### Frontend
 
@@ -122,7 +122,7 @@ Redis es usado para:
 * Notificaciones por correo.
 
 
-## 5. Instalación
+##  Instalación
 
 ### Requisitos Previos
 
