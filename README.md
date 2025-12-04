@@ -1,14 +1,5 @@
 # Sistema de Pruebas de Vida (Liveness Detection)
 
-##  Alcance del Sistema
-
-El sistema está diseñado para:
-
-* Solicitar al usuario realizar acciones específicas (parpadear, sonreír, mover la cabeza).
-* Prevenir verificaciones usando imágenes estáticas, videos pregrabados o máscaras.
-* Funcionar en navegadores y dispositivos móviles.
-* Proteger los datos biométricos mediante encriptación y control de acceso.
-
 ##  Arquitectura del Sistema
 
 La arquitectura se divide en dos grandes componentes: **Frontend** y **Backend**, apoyados por servicios adicionales como Redis, PostgreSQL, OCR y AWS Rekognition.
