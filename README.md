@@ -254,10 +254,3 @@ El usuario recibe:
 * **Fallo**
 * **Revisión manual** (si algo no coincide)
 
----
-
-## 5. Conclusión
-
-Este sistema proporciona un proceso robusto, eficiente y seguro para la verificación de identidad. Gracias al uso de biometría, análisis de comportamiento y herramientas de IA, es capaz de prevenir fraudes y asegurar que la persona verificada esté realmente presente.
-
-Su diseño modular facilita la escalabilidad, interoperabilidad con otros servicios y adaptación a distintos entornos y dispositivos.
