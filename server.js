@@ -51,7 +51,7 @@ app.use(helmet({
 }));
 app.set('trust proxy', 1);
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
-app.use(limiter); 
+
 
 // ===== Static folders =====
 app.use("/js", express.static(path.join(process.cwd(), "Views/Js")));
